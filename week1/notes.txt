@@ -1,0 +1,192 @@
+LISt Processing
+  -can build nonatomic objects by combining several objects into a list
+
+Why is lisp used for AI?
+  - http://stackoverflow.com/questions/130475/why-is-lisp-used-for-ai
+  - ￼First, Lisp is the most popular language for A1 programming, particularly in the United States. If you're going to learn a language, it might as well be one with a growingliterature, rather than a dead tongue.
+  - Second, Lisp makes it easy to capture relevant generalizations in defining new objects. In particular, Lisp makes it easy to define new languages especially targeted to the problem at hand. This is especially handy in A1 applications, which often manipulate complex information that is most easily represented in some novel form. Lisp is one of the few languages that allows full flexibility in defining and manipu- lating programs as well as data. All programming languages, by definition, provide a means of defining programs, but many other languages limit the ways in which a program can be used, or limit the range of programs that can be defined, or require the programmer to explicitly state irrelevant details.
+  - Third, Lisp makes it very easy to develop a working program fast. Lisp programs areconciseand are uncluttered bylow-leveldetail. CommonLispoffersan unusually large number of useful predefined objects, including over 700 functions. The pro- gramming environment (such as debugging tools, incremental compilers, integrated editors, and interfaces to window systems) that surround Lisp systems are usually very good. And the dynamic, interactive nature of Lisp makes it easy to experiment and change a program while it is being developed.
+
+Prolog
+- It must be mentioned that in Europe and Japan, Prolog has been as popular as LispforA1work. Prologsharesmostof Lisp's advantagesintermsof flexibilityand conciseness. Recently, Lisp has gained popularity worldwide, and Prolog is becom- ing more well known in the United States. As a result, the average A1worker today is likely to be bilingual. This book presents the key ideas behind Prolog in chapters 11 and 12, and uses these ideas in subsequent chapters, particularly 20 and 21.
+
+Pascal and C vs Lisp (special vs general purpose languages)
+- Pascal and C are special-purpose languages for manipulating the registers and memory of a von Neumann-style computer. The majority of their syntax is devoted to arithmetic and Boolean expressions, and while they provide some facilities for forming data structures, they have poor mechanisms for procedural abstraction or control abstraction. In addition, they are designed for the state-oriented style of programming: computing a result by changing the value of variables through assignment statements.
+- Lisp, on the other hand, has no special syntax for arithmetic. Addition and multiplication are no more or less basic than list operations like appending, or string operations like converting to upper case. But Lisp provides all you will need for programming in general: defining data structures, functions, and the means for combining them.
+
+Flexibility in programming style (state-oriented, O-O, functional, etc...)
+- Lisp has a powerful macro facility, which can be used to extend the basic language. When new styles of programming were invented, other languages died out; Lisp simply incorporated the new styles by defining some new macros. The macro facility is possible because Lisp programs are composed of a simple data structure:
+  - the list.
+-Lisp's second great flexible feature:
+  - the function.
+  - Of course, other languages have functions, but Lisp is rare in allowing the creation of new functions *while a program is running*
+
+In other languages you fit your problem to the language; with Lisp you extend the language to fit your problem
+
+(+ arg0 arg1 ... argn)
+- More important than the notation is the rule for evaluation. In Lisp, lists are evaluated by first evaluating all the arguments, then applying the function to the arguments, thereby computing the result. This rule is much simpler than the rule for evaluating normal mathematical expressions, where there are many conventions to remember, such as doing multiplications and divisions before sums and differences.
+single quote marks beginning of expression
+
+
+In Lisp, statements AND expressions return a value
+fewer tokens
+- only parentheses, quotemarks(single,double,andbackward),spaces,andthecommaservetoseparate symbols from each other
+no ; bc all expressions delimited by parentheses
+  -; used to begin comment, however
+
+the philosophy of LISP
+-The philosophy of Lisp is to provide a small number of special forms to do the things that could not otherwise be done, and then to expect the user to write everthing else as functions
+-special forms
+-The term special form is used confusingly to refer both to symbols like s e t f and expressions that start with them, like ( s e t f x 3 1
+
+-only the value nil is considered false, all other values are true
+
+-higher order functions
+- Functions in Lisp can not only be "called," or applied to arguments, they can also be manipulated just like any other kind of object
+-higher order- function that takes a function as an argument
+
+-why lambdas are important
+-2 reasons
+There are two reasons why lambda expressions are very useful.
+-First, it can be messy to clutter up a program with superfluous names. Just as it isclearertowrite(a+b)*(c+d ratherthantoinventvariablenamesliketemp1and temp2 to hold a+b and c+d, so it can be clearer to define a function as a lambda expression rather than inventing a name for it.
+-Second, and more importantly, lambda expressions make it possible to create new functions at run time. This is a powerful technique that is not possible in most programming languages. These run-time functions, known as closures, will be covered in section 3.16.
+
+The Lisp Evaluation Rule
+Every expression is either a list or an atom.
+a Everylist to be evaluatedis either a specialform expuessionor afunction application.
+Aspecial formexpressionisdefinedtobealistwhosefirstelementisaspecialform operator. The expression is evaluated according to the operator's idiosyncratic evaluation rule. For example, the evaluation rule for setf is to evaluate the secondargumentaccordingtothenormalevaluationrule,setthefirstargument to that value, and return the value as the result. The rule for defun is to define a new function, and return the name of the function. The rule for quote is to return the first argument unevaluated. The notation 'x is actually an abbreviationforthespecialformexpression (quotex).Similarly,thenotation #'fisanabbreviationforthespecialformexpression(function f1.
+'John = (quote John) +-JOHN
+(setf p 'John) + JOHN
+(defun twice (x) (+ x x)) +TWICE (if (= 2 3) (error) (+ 5 6)) +11
+A function application is evaluated by first evaluating the arguments (the rest of the list) and then finding the function named by the first element of the list and applying it to the list of evaluated arguments.
+(+23) +5
+(- (+ 90 9) (+ 50 5 (length '(Pat Kim)))) + 42
+Note that if ' ( Pat Kim) did not have the quote, it would be treated as a function application of the function p a t to the value of the variable k i m.
+e Every atom is either a symbol or a nonsymbol.
+A symbol evaluates to the most recent value that has been assigned to the variable named by that symbol. Symbols are composed of letters, and possibly digits and, rarely, punctuation characters. To avoid confusion, we will use symbols composed mostly of the letters a- z and the ' - 'character, with a few exceptions.6
+names
+P
+*print-pretty*
+A nonsymbol atom evaluates to itself. For now, numbers and strings are the only such non-symbol atoms we know of. Numbers are composed of digits, and possibly a decimal point and sign. There are also provisions for scientific notation, rational and complex numbers, and numbers with different bases, but we won't describe the details here. Strings are delimited by double quote marks on both sides.
+
+WHAT MAKES LISP DIFFERENT, good language for AI
+- Built-in Support for Lists
+- Automatic Storage Management
+- Dynamic Typing
+- First-Class Functions
+- Uniform Syntax
+- Extensibility
+- History
+***in sum, these factors allow a programmer to delay making decisions (make temporary, nonbinding decisions)***
+- irrelevant details can be ignored
+
+- Built-in Support for Lists. The list is a very versatile data structure, and while lists can be implemented in any language, Lisp makes it easy to use them. Many A1 applications involve lists of constantly changing size, making fixed-length data structures like vectors harder to use.
+Earlyversions of Lisp used lists as their only aggregate data structure. Common Lisp provides other types as well, because lists are not always the most efficient choice.
+
+- Automatic Storage Management. The Lisp programmer needn't keep track of memory allocation; it is all done automatically. This frees the programmer of a lotofeffort,andmakesiteasytousethefunctionalstyleof programming.Other languages present programmers with a choice. V ariables can be allocated on the stack, meaning that they are created when a procedure is entered, and disappear when the procedure is done. This is an efficientuse of storage, *but it rules out functions that return complex values*. The other choice is for the programmer to explicitly allocate and free storage. This makes the functional style possible but can lead to errors.
+*pascal vs lisp a * (b + c) for matrices*
+In general, deciding which structures to free is a difficult task for the Pascal programmer. If the programmer misses some, then the program may run out of memory. Worse, if the programmer frees a structure that is still being used, then strange errors can occur when that piece of memory is reallocated. *Lisp automatically allocates and frees structures, so these two types of errors can never occur.*
+
+- Dynamic Typing. Lisp programmers don't have to provide type declarations, because the language keeps track of the type of each object at run time, rather than figuring out all types at compile time. This makes Lisp programs shorter and hence faster to develop, and it also means that functions can often be extended to work for objects to which they were not originally intended to apply. In Pascal, we can write a procedure to sort an array of 100 integers, but we can't use that same procedure to sort 200 integers, or 100 strings (impossible). *In Lisp, one sort fits all.*
+*ada example of attempting to compile generic functions vs CL*
+
+- First-Class Functions***(closures)***. Afirst-classobject is one that can be used anywhere and can be manipulated in the same ways as any other kind of object. In Pascal or C, for example, ***functions can be passed as arguments to other functions, but they are not first-class, because it is not possible to create new functions while the program is running***, nor is it possible to create an anonymous function without giving it a name. In Lisp we can do both those things using 1ambda. This is explained in section 3.16, page 92.
+
+- Uniform Syntax. The syntax of Lisp programs is simple. This makes the lan- guage easy to learn, and very little time is wasted correcting typos. In addition, *it is easy to write programs that manipulate other programs or define whole new languages*- a very powerful technique. The simple syntax also makes it easy for text editing programs to parse Lisp. Your editor program should be able to indent expressions automatically and to show matching parentheses. This is harder to do for languages with complex syntax.
+
+-time saved by having universal functions to handle input and output. The Lisp functions read and p r i n t will automatically handle any list, structure, string, or number. This makes it trivial to test individual functions while developing your program In a traditional language like C or Pascal, you would have to write special-purpose functions to read and print each data type you wanted to debug, as well as a special-purpose driver to call the routines. Because this is time-consuming and error-prone, the temptation is to avoid testing altogether. Thus, *Lisp encourages better-tested programs, and makes it easier to develop them faster*.
+
+- Interactive Environment. Traditionally, a programmer would write a complete program, compile it, correct any errors detected by the compiler, and then run and debug it. This is known as the batch mode of interaction. For long programs, waiting for the compiler occupied a large portion of the debugging time. In Lisp one normally writes a few small functions at a time, getting feedback from the Lisp system after evaluating each one. This is known as an interactive environment. *agile development*
+*interactive over batch, not interpreted over compiled*
+*symbol table from debugging does not disappear after program has run*
+
+- Extensibility. When Lisp was invented in 1958, nobody could have foreseen the advances in programmingtheory and language design that have taken place in the last thirty years. Other early languages have been discarded, replaced by ones based on newer ideas. However, *Lisp has been able to survive, because it has been able to adapt*. Because Lisp is extensible, it has been changed to incorporate the newest features as they become popular.
+*ex case/if-then-else constructs added to lisp as macros*
+
+-data-driven programming
+This style of programming is called data-driven programming, because the data (the list of rewrites associated with a category)drives what the program does next. It is a natural and easy-to-use style in Lisp, leading to concise and extensible programs, because it is always possible to add a new piece of data with a new associationwithout having to modify the originalprogram (pg 64)
+
+-let => new scoped variable vs.
+-setf => global, referenced by multiple functions
+
+-more work for smaller problems, but most AI problems:
+Use the most natural notation available to solve the problem, and then worry about writing an interpreter for that notation.
+
+-Changing the Grammar without Changing the Program (pg 67)
+
+-using the same data for several programs (pg 67) rewriting sentence generator to generate parse tree, one data/multiple-program
+
+-*closures (ruby blocks)
+
+-a "recursive language"
+
+-the general problem solver
+GPS was the first computer program which separated its knowledge of problems (rules represented as input data) from its strategy of how to solve problems (a generic solver engine)
+-means-ends analysis
+ I want to take my son to nursery school. What's the difference between what I have and what I want? One of distance. What changes disfance? My automobile. My automobile won't work. What is needed to make it work? A new battery. What has new batteries? An auto repair shop. I want the repair shop to put in a new battery; but the shop doesn't know I need one. What is the difficulty? One of communication. What allows communication? A telephone. . . and so on
+ *The kind of analysis- classifying things in terms of the functions they serve and oscillating among ends, functions required,and means thatperfom them- forms thebasicsystemof heuristicof GPS.
+
+-a comple problem is described to GPS with
+-starting state
+-goal state
+-set of known operators
+(GPS '(unknown poor) '(rich famous) list-of-ops)
+-We can apply an operator if we can achieve all the precondition
+
+-4 functions
+  -1st is current state of world
+  -2nd is goal state
+  -3rd list of know operators
+
+*pg 136 (testing drive-son-to-school)
+There will be an operator for installing a battery, telling the repair shop the problem, and telephoning the shop. We can fill in the "and so on" by adding operators for looking up the shop's phone number and for giving the shop money:
+
+(defparameter *school-ops* (list
+(make-op :action 'drive-son-to-school :preconds'(son-at-home car-works)
+:add-list '(son-at-school) :del -list '(son-at-home)) .
+(make-op :action 'shop-installs-battery
+:preconds '(car-needs-battery shop-knows-problem shop-has-money)
+:add-list '(car-works))
+(make-op :action 'tell -shop-problem
+:preconds '(in-communication-with-shop) :add-list '(shop-knows-problem))
+(make-op :action 'telephone-shop :preconds '(know-phone-number)
+:add-list '(in-communication-with-shop)) (make-op :action 'look-up-number
+:preconds '(have-phone-book) :add-list '(know-phone-number)) (make-op :action 'give-shop-money
+:preconds '(have-money) :add-list '(shop-has-money)
+:del-list '(have-money))))
+
+end goal is the same: son at school, difference is initial state
+
+
+> (gps'(son-at-home car-needs-battery have-money have-phone-book) '(son-at-school)
+*school -ops*) (EXECUTING LOOK-UP-NUMBER)
+(EXECUTING TELEPHONE-SHOP)
+(EXECUTING TELL-SHOP-PROBLEM)
+(EXECUTING GIVE-SHOP-MONEY)
+(EXECUTING SHOP-INSTALLS-BATTERY)
+(EXECUTING DRIVE-SON-TO-SCHOOL) SOLVED
+
+> (gps '(son-at-home car-needs-battery have-money) '(son-at-school
+*school -ops*)
+NIL
+
+> (gps '(son-at-home car-works) '(son-at-school
+*school -ops*)
+(EXECUTING DRIVE-SON-TO-SCHOOL)
+
+------
+neural networks
+
+From the point of view of artificial neurons and artificial neural networks, Hebb's principle can be described as a method of determining how to alter the weights between model neurons. The weight between two neurons increases if the two neurons activate simultaneously, and reduces if they activate separately. Nodes that tend to be either both positive or both negative at the same time have strong positive weights, while those that tend to be opposite have strong negative weights.
+
+The following is a formulaic description of Hebbian learning: (note that many other descriptions are possible)
+
+\,w_{ij}=x_ix_j
+where w_{ij}  is the weight of the connection from neuron  j  to neuron  i  and  x_i  the input for neuron  i . Note that this is pattern learning (weights updated after every training example). In a Hopfield network, connections w_{ij}  are set to zero if i=j  (no reflexive connections allowed). With binary neurons (activations either 0 or 1), connections would be set to 1 if the connected neurons have the same activation for a pattern.
+
+Another formulaic description is:
+
+w_{ij} = \frac{1}{p} \sum_{k=1}^p x_i^k x_j^k\, ,
+where w_{ij}  is the weight of the connection from neuron  j  to neuron  i ,  p  is the number of training patterns, and x_{i}^k the  k th input for neuron  i . This is learning by epoch (weights updated after all the training examples are presented). Again, in a Hopfield network, connections w_{ij}  are set to zero if i=j  (no reflexive connections).
+
+A variation of Hebbian learning that takes into account phenomena such as blocking and many other neural learning phenomena is the mathematical model of Harry Klopf. Klopf's model reproduces a great many biological phenomena, and is also simple to implement.
