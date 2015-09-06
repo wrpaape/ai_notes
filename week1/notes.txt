@@ -174,8 +174,17 @@ NIL
 *school -ops*)
 (EXECUTING DRIVE-SON-TO-SCHOOL)
 
+-2nd ex: the look- up- number operator fails because its precondition, have - phone - book, cannot be achieved. Knowing the phone number is a precondition, directly or indirectly, of all the operators, so no action is taken and GPS returns NIL.
+
+******A1 programming is largely exploratory programming; the aim is often to discover more about the problem area rather than to meet a clearly defined specification. This is in contrast to a more traditional notion of programming, where the problem is completely specified before the first line of code is written.*******
 ------
 neural networks
+
+ artificial neural networks (ANNs) are a family of statistical learning models inspired by the central nervouse system and are used to estimate or approximate functions that can depend on a large number of inputs and are generally unknown.
+
+ artificial neural networks are generally presented as systems of interconnected "neurons" which exchange messages between each other. The connections have numeric weights that can be tuned based on experience, making neural nets adaptive to inputs and capable of learning.
+
+For example, a neural network for handwriting recognition is defined by a set of input neurons which may be activated by the pixels of an input image. After being weighted and transformed by a function (determined by the network's designer), the activations of these neurons are then passed on to other neurons. This process is repeated until finally, an output neuron is activated. This determines which character was read.
 
 From the point of view of artificial neurons and artificial neural networks, Hebb's principle can be described as a method of determining how to alter the weights between model neurons. The weight between two neurons increases if the two neurons activate simultaneously, and reduces if they activate separately. Nodes that tend to be either both positive or both negative at the same time have strong positive weights, while those that tend to be opposite have strong negative weights.
 
@@ -190,3 +199,37 @@ w_{ij} = \frac{1}{p} \sum_{k=1}^p x_i^k x_j^k\, ,
 where w_{ij}  is the weight of the connection from neuron  j  to neuron  i ,  p  is the number of training patterns, and x_{i}^k the  k th input for neuron  i . This is learning by epoch (weights updated after all the training examples are presented). Again, in a Hopfield network, connections w_{ij}  are set to zero if i=j  (no reflexive connections).
 
 A variation of Hebbian learning that takes into account phenomena such as blocking and many other neural learning phenomena is the mathematical model of Harry Klopf. Klopf's model reproduces a great many biological phenomena, and is also simple to implement.
+
+genetic algorithm
+-In the field of artificial intelligence, a genetic algorithm (GA) is a search heuristic that mimics the process of natural selection.
+(see the evolved antenna)
+-The evolution usually starts from a population of randomly generated individuals, and is an iterative process
+- In each generation, the fitness of every individual in the population is evaluated; the fitness is usually the value of the objective function in the optimization problem being solved. The more fit individuals are stochastically selected from the current population, and each individual's genome is modified (recombined and possibly randomly mutated) to form a new generation
+-e algorithm terminates when either a maximum number of generations has been produced, or a satisfactory fitness level has been reached for the population.
+-"instead of building high-performance strings by trying every conceivable combination, we construct better and better strings from the best partial solutions of past samplings" -Goldberg
+-Genetic algorithms do not scale well with complexity. That is, where the number of elements which are exposed to mutation is large there is often an exponential increase in search space size
+-In many problems, GAs may have a tendency to converge towards local optima or even arbitrary points rather than the global optimum of the problem. This means that it does not "know how" to sacrifice short-term fitness to gain longer-term fitness.
+-the "No Free Lunch" theorem- the no free lunch theorem is a result that states that for certain types of mathematical problems, the computational cost of finding a solution, averaged over all problems in the class, is the same for any solution method. No solution therefore offers a 'short cut'.
+
+-our brains are made up of ~100 billion tiny units called neurons.
+-the neuron sums up the inputs to itself (synapses) in some way and then, if the end result is greater than some threshold value, the neuron fires
+-NNs are mad up of many artificial neurons (an electronically modelled biological neuron)
+-There are many different ways of connecting  artificial neurons together to create a neural network but I shall be concentrating on the most common which is called a **feedforward network**
+-(artifical neuron diagram)
+-Each input into the neuron has its own weight associated with it illustrated by the red circle.
+-a weight is a floating point number
+  -*these are adjusted when the network is "trained"
+  -can be +/- (excitory/inhibitory)
+-as each input eneters the nucleus (blue circle), it's multiplied by its weight.
+-the nucleus sums all these new inputs => *activation (+/- floating point number)
+-if the activation is > threshold value, the neuron outputs a signal
+-otherwise the neuron outputs 0
+-(mathmatical sumation of wixis)
+
+-HOW DO WE USE AN ARTIFICIAL NEURON?
+-feedforward network
+-(diagram of output layer, hidden layer, input layer)
+Each input is sent to every neuron in the hidden layer and then each hidden layer’s neuron’s output is connected to every neuron in the next layer. There can be any number of hidden layers within a feedforward network but one is usually enough to suffice for most problems you will tackle.
+-**example**neural nets in character recognition
+-recognizing the number 4
+
