@@ -21,15 +21,27 @@ var Index = React.createClass({
         alpha: alpha,
         x: 500,
         y: 250,
-        vx: 1,
-        vy: 1,
+        vx: 3,
+        vy: 3,
         color: 'blue',
         draw: function() {
           var x = this.x;
           var y = this.y;
+          var vx = this.vx;
+          var vy = this.vy;
           var le = this.le;
           var alpha = this.alpha;
-          var aoa = Math.atan(this.vy / this.vx);
+          var aoa = Math.atan(vy / vx);
+          if (vx < 0 && vy >= 0) {
+            aoa -= Math.PI;
+          } else if (vx < 0 && vy < 0) {
+            aoa += Math.PI;
+          }
+
+          // console.log('X: ' + vxSign + ' Y: ' + vySign);
+          // console.log('cos: ' + Math.cos(aoa - alpha));
+          // console.log('sin: ' + Math.sin(aoa - alpha));
+          console.log(aoa);
           ctx.beginPath();
           ctx.moveTo(x, y);
           ctx.lineTo(x - le * Math.cos(aoa - alpha), y - le * Math.sin(aoa - alpha));
