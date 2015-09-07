@@ -2,38 +2,50 @@
 'use strict';
 
 var Index = React.createClass({
-  getInitialState: function() {
-    return this.getDims();
-  },
   componentDidMount: function() {
-    window.addEventListener('resize', this.refreshDims);
-    this.draw();
+    var canvas = document.getElementsByTagName('canvas')[0];
+    var ctx = canvas.getContext('2d');
+
+    this.setState({
+      canvas: canvas,
+      ctx: ctx,
+      ball : {
+        x: 500,
+        y: 250,
+        vx: 1,
+        vy: 1,
+        radius: 25,
+        color: 'blue',
+        draw: function() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2, true);
+          ctx.closePath();
+          ctx.fillStyle = this.color;
+          ctx.fill();
+        }
+      }
+    }, function() {
+      this.draw();
+    }.bind(this));
   },
   render: function() {
-    // var style = {
-    //   width: this.state.width + 'px',
-    //   height: this.state.height + 'px'
-    // };
-    var style = {
-      width: '200px',
-      height: '200px'
-    }
-
-    return <canvas style={ style } />;
-  },
-  getDims: function() {
-    var width = window.innerWidth / 2;
-
-    return({
-      width: width,
-      height: width / 2
-    });
-  },
-  refreshDims: function() {
-    this.setState(this.getDims());
+    return <canvas width='1000' height='500' />;
   },
   draw: function() {
-    var ctx = document.getElementsByTagName('canvas')[0].getContext('2d');
-    ctx.strokeRect(0, 0, 200, 200);
+    var canvas = this.state.canvas;
+    var ctx = this.state.ctx;
+    var ball = this.state.ball;
+
+    ctx.clearRect(0,0, canvas.width, canvas.height);
+    ball.draw();
+    ball.x += ball.vx;
+    ball.y += ball.vy;
+    if (ball.y + ball.vy > canvas.height || ball.y + ball.vy < 0) {
+      ball.vy = -Math.random() * 2 * ball.vy;
+    }
+    if (ball.x + ball.vx > canvas.width || ball.x + ball.vx < 0) {
+      ball.vx = -Math.random() * 2 * ball.vx;
+    }
+    window.requestAnimationFrame(this.draw);
   }
 });
