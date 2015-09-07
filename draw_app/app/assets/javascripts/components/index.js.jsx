@@ -5,28 +5,41 @@ var Index = React.createClass({
   componentDidMount: function() {
     var canvas = document.getElementsByTagName('canvas')[0];
     var ctx = canvas.getContext('2d');
+    var ar = 1 / 3;
+    var height = 150;
+    var base = height * ar;
+    var le = Math.sqrt(Math.pow(base / 2, 2) + Math.pow(height, 2));
+    var alpha = Math.atan((base / 2) / height);
 
     this.setState({
       canvas: canvas,
       ctx: ctx,
-      ball : {
+      car : {
+        base: base,
+        height: height,
+        le: le,
+        alpha: alpha,
         x: 500,
         y: 250,
         vx: 1,
         vy: 1,
-        radius: 25,
         color: 'blue',
         draw: function() {
+          var x = this.x;
+          var y = this.y;
+          var le = this.le;
+          var alpha = this.alpha;
+          var aoa = Math.atan(this.vy / this.vx);
           ctx.beginPath();
-          ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2, true);
+          ctx.moveTo(x, y);
+          ctx.lineTo(x - le * Math.cos(aoa - alpha), y - le * Math.sin(aoa - alpha));
+          ctx.lineTo(x - le * Math.cos(aoa + alpha), y - le * Math.sin(aoa + alpha));
           ctx.closePath();
           ctx.fillStyle = this.color;
           ctx.fill();
         }
       }
-    }, function() {
-      this.draw();
-    }.bind(this));
+    }, this.draw);
   },
   render: function() {
     return <canvas width='1000' height='500' />;
@@ -34,17 +47,17 @@ var Index = React.createClass({
   draw: function() {
     var canvas = this.state.canvas;
     var ctx = this.state.ctx;
-    var ball = this.state.ball;
+    var car = this.state.car;
 
-    ctx.clearRect(0,0, canvas.width, canvas.height);
-    ball.draw();
-    ball.x += ball.vx;
-    ball.y += ball.vy;
-    if (ball.y + ball.vy > canvas.height || ball.y + ball.vy < 0) {
-      ball.vy = -Math.random() * 2 * ball.vy;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    car.draw();
+    car.x += car.vx;
+    car.y += car.vy;
+    if (car.y + car.vy > canvas.height || car.y + car.vy < 0) {
+      car.vy = -car.vy;
     }
-    if (ball.x + ball.vx > canvas.width || ball.x + ball.vx < 0) {
-      ball.vx = -Math.random() * 2 * ball.vx;
+    if (car.x + car.vx > canvas.width || car.x + car.vx < 0) {
+      car.vx = -car.vx;
     }
     window.requestAnimationFrame(this.draw);
   }
