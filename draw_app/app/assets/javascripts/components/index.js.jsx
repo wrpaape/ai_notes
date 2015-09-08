@@ -78,8 +78,7 @@ var Index = React.createClass({
     var width = state.width;
     var height = state.height;
     var pad = state.pad;
-    var xCar = state.car.x;
-    var yCar = state.car.y;
+    var car = state.car;
     var radius = pad * 3 / 20 + Math.random() * pad / 10;
     var thisPad = radius + pad;
     var x = thisPad + Math.random() * (width - 2 * thisPad);
@@ -90,7 +89,7 @@ var Index = React.createClass({
     this.radius = radius;
     this.color = color;
     this.getDistance = function() {
-      return Math.sqrt(Math.pow(x - xCar, 2) + Math.pow(y - yCar, 2)) - radius;
+      return Math.sqrt(Math.pow(x - car.x, 2) + Math.pow(y - car.y, 2)) - radius;
     };
     this.draw = function() {
       ctx.beginPath();
@@ -101,11 +100,11 @@ var Index = React.createClass({
     };
   },
   setDots: function() {
-    var state  = this.state;
-    var numDots = state.numDots;
+    var Dot = this.Dot.bind(this, this.state);
+    var numDots = this.state.numDots;
     var dots = [];
     while (dots.length < numDots) {
-      dots.push(new this.Dot(state));
+      dots.push(new Dot());
     }
 
     dots = {
@@ -117,15 +116,17 @@ var Index = React.createClass({
       },
       updateAll: function() {
         var dots = this.dots.sort(function(a, b) {
-          a.color = 'blue';
-          b.color = 'blue';
+          [a, b].forEach(function(dot) {
+            dot.color = 'blue';
+            dot.distance = dot.getDistance();
+          });
 
-          return a.getDistance() - b.getDistance();
+          return a.distance - b.distance;
         });
 
         var i = 0;
         while (dots[i].distance < 0) {
-          dots[i++] = new this.Dot(this.state);
+          dots[i++] = new Dot();
         }
         dots[i].color = 'green';
       }
@@ -147,7 +148,7 @@ var Index = React.createClass({
     car.draw();
     dots.drawAll();
     car.update();
-    dots.updateAll(car.x, car.y);
+    dots.updateAll();
     window.requestAnimationFrame(this.draw);
   },
   render: function() {
