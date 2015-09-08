@@ -23,82 +23,89 @@ var Index = React.createClass({
     var span = length * ar;
     var le = Math.sqrt(Math.pow(span / 2, 2) + Math.pow(length, 2));
     var alpha = Math.atan((span / 2) / length);
-    var randCoord = function(dim) {
-      return length + Math.random() * (dim - 2 * length);
+    var sRand = function(dim, pad) {
+      return pad + Math.random() * (dim - 2 * pad);
     };
-    var randV = function(max) {
-      return (Math.random() < 0.5 ? -1 : 1) * Math.random() * max;
+    var vAbsRand = function(vAbsMax) {
+      return Math.random() * vAbsMax;
     };
-    var getAOA = function(vx, vy) {
-      var aoa = Math.atan(vy / vx);
-      if (vx < 0 && vy >= 0) {
+    var vRand = function(vAbsMax) {
+      return (Math.random() < 0.5 ? -1 : 1) * vAbsRand(vAbsMax);
+    };
+    var vNegRand = function(v, vAbsMax) {
+      return (v < 0 ? 1 : -1) * vAbsRand(vAbsMax);
+    };
+    var getAOA = function(v) {
+      var aoa = Math.atan(v.y / v.x);
+      if (v.x < 0 && v.y >= 0) {
         aoa -= Math.PI;
-      } else if (vx < 0 && vy < 0) {
+      } else if (v.x < 0 && v.y < 0) {
         aoa += Math.PI;
       }
       return aoa;
     };
-    var vx = randV(4);
-    var vy = randV(4);
+    var v = {
+      x: vRand(4),
+      y: vRand(4)
+    };
     this.length = length;
     this.ar = ar;
-    this.x = randCoord(width);
-    this.y = randCoord(height);
-    this.vx = vx;
-    this.vy = vy;
-    this.aoa = getAOA(vx, vy);
+    this.s = {
+      x: sRand(width, length),
+      y: sRand(height, length)
+    };
+    this.v = v;
+    this.aoa = getAOA(v);
     this.color = 'pink';
     this.draw = function() {
-      var x = this.x;
-      var y = this.y;
+      var s = this.s;
       var aoa = this.aoa;
       ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.lineTo(x - le * Math.cos(aoa - alpha), y - le * Math.sin(aoa - alpha));
-      ctx.lineTo(x - le * Math.cos(aoa + alpha), y - le * Math.sin(aoa + alpha));
+      ctx.moveTo(s.x, s.y);
+      ctx.lineTo(s.x - le * Math.cos(aoa - alpha), s.y - le * Math.sin(aoa - alpha));
+      ctx.lineTo(s.x - le * Math.cos(aoa + alpha), s.y - le * Math.sin(aoa + alpha));
       ctx.closePath();
       ctx.fillStyle = this.color;
       ctx.fill();
     };
     this.update = function() {
-      var vx = this.vx;
-      var vy = this.vy;
-      this.x += vx;
-      this.y += vy;
-      var x = this.x;
-      var y = this.y;
-      if (x + vx > width - length || x + vx < length) {
-        vx *= -Math.random() * 2;
-        this.vx = vx;
+      var v = this.v;
+      var s = this.s;
+      s.x += v.x;
+      s.y += v.y;
+      if (s.x + v.x > width - length || s.x + v.x < length) {
+        v.x = vNegRand(v.x, 4);
       }
-      if (y + vy > height - length || y + vy < length) {
-        vy *= -Math.random() * 2;
-        this.vy = vy;
+      if (s.y + v.y > height - length || s.y + v.y < length) {
+        v.y = vNegRand(v.y, 4);
       }
-      this.aoa = getAOA(vx, vy);
+      this.aoa = getAOA(v);
     };
    },
   setCar: function() {
-    this.setState({ car: new this.Car(this.state) }, this.setDots.bind(this, 10));
+    this.setState({ car: new this.Car(this.state) }, this.setDots.bind(this, 30));
   },
   Dot: function(canvas) {
     var ctx = canvas.ctx;
     var width = canvas.width;
     var height = canvas.height;
     var pad = canvas.pad;
-    var car = canvas.car;
+    var sCar = canvas.car.s;
     var radius = pad * 3 / 20 + Math.random() * pad / 10;
     var thisPad = radius + pad;
-    this.x = thisPad + Math.random() * (width - 2 * thisPad);
-    this.y = thisPad + Math.random() * (height - 2 * thisPad);
+    var s = {
+      x: thisPad + Math.random() * (width - 2 * thisPad),
+      y: thisPad + Math.random() * (height - 2 * thisPad)
+    };
     this.radius = radius;
+    this.s = s;
     this.color = 'blue';
     this.getDistance = function() {
-      return Math.sqrt(Math.pow(this.x - car.x, 2) + Math.pow(this.y - car.y, 2)) - radius;
+      return Math.sqrt(Math.pow(s.x - sCar.x, 2) + Math.pow(s.y - sCar.y, 2)) - radius;
     };
     this.draw = function() {
       ctx.beginPath();
-      ctx.arc(this.x, this.y, radius, 0, 2 * Math.PI, true);
+      ctx.arc(s.x, s.y, radius, 0, 2 * Math.PI, true);
       ctx.closePath();
       ctx.fillStyle = this.color;
       ctx.fill();
@@ -116,30 +123,31 @@ var Index = React.createClass({
     }
 
     dots = {
-      dots: dots,
+      all: dots,
       drawAll: function() {
-        this.dots.forEach(function(dot) {
+        this.all.forEach(function(dot) {
           dot.draw();
         });
       },
       updateAll: function() {
-        var dots = this.dots.sort(function(a, b) {
+        var dots = this.all.sort(function(a, b) {
           [a, b].forEach(function(dot) {
             dot.color = 'blue';
             dot.distance = dot.getDistance();
           });
 
-          return a.distance - b.distance;
+          return b.distance - a.distance;
         });
 
-        var i = 0;
+        var i = dots.length - 1;
         while (dots[i].distance < 0) {
-          dots[i++] = new Dot();
+          dots[i--] = new Dot();
         }
         dots[i].color = 'green';
       }
     };
     dots.updateAll();
+    dots.closest = dots.all[0];
 
     this.setState({ dots: dots }, this.draw);
   },
