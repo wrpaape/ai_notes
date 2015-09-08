@@ -4,81 +4,89 @@
 var Index = React.createClass({
   componentDidMount: function() {
     var canvas = document.getElementsByTagName('canvas')[0];
-    var ctx = canvas.getContext('2d');
-    var width = canvas.width;
-    var height = canvas.height;
-    var pad = height / 10;
-    var carHeight = pad;
-    var ar = 1 / 3;
-    var base = carHeight * ar;
-    var le = Math.sqrt(Math.pow(base / 2, 2) + Math.pow(carHeight, 2));
-    var alpha = Math.atan((base / 2) / carHeight);
-    var x0 = width / 2;
-    var y0 = height / 2;
-    var vx0 = 3;
-    var vy0 = 3;
-    var numDots = 10;
-
     this.setState(
       {
-        ctx: ctx,
-        width: width,
-        height: height,
-        pad: pad,
-        numDots: numDots,
-        car : {
-          base: base,
-          height: carHeight,
-          le: le,
-          alpha: alpha,
-          x: x0,
-          y: y0,
-          vx: vx0,
-          vy: vy0,
-          color: 'pink',
-          draw: function() {
-            var x = this.x;
-            var y = this.y;
-            var vx = this.vx;
-            var vy = this.vy;
-            var le = this.le;
-            var alpha = this.alpha;
-            var aoa = Math.atan(vy / vx);
-            if (vx < 0 && vy >= 0) {
-              aoa -= Math.PI;
-            } else if (vx < 0 && vy < 0) {
-              aoa += Math.PI;
-            }
-
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(x - le * Math.cos(aoa - alpha), y - le * Math.sin(aoa - alpha));
-            ctx.lineTo(x - le * Math.cos(aoa + alpha), y - le * Math.sin(aoa + alpha));
-            ctx.closePath();
-            ctx.fillStyle = this.color;
-            ctx.fill();
-          },
-          update: function() {
-            this.x += this.vx;
-            this.y += this.vy;
-            if (this.y + this.vy > height - this.height || this.y + this.vy < this.height) {
-              this.vy = -Math.random() * 2 * this.vy;
-            }
-            if (this.x + this.vx > width - this.height || this.x + this.vx < this.height) {
-              this.vx = -Math.random() * 2 * this.vx;
-            }
-          }
-        }
+        ctx: canvas.getContext('2d'),
+        width: canvas.width,
+        height: canvas.height,
+        pad: canvas.height / 10
       },
-      this.setDots
+      this.setCar
     );
   },
-  Dot: function(state) {
-    var ctx = state.ctx;
-    var width = state.width;
-    var height = state.height;
-    var pad = state.pad;
-    var car = state.car;
+  Car: function(canvas) {
+    var ctx = canvas.ctx;
+    var width = canvas.width;
+    var height = canvas.height;
+    var length = canvas.pad;
+    var ar = 1 / 3;
+    var span = length * ar;
+    var le = Math.sqrt(Math.pow(span / 2, 2) + Math.pow(length, 2));
+    var alpha = Math.atan((span / 2) / length);
+    var randCoord = function(dim) {
+      return length + Math.random() * (dim - 2 * length);
+    };
+    var randV = function(max) {
+      return (Math.random() < 0.5 ? -1 : 1) * Math.random() * max;
+    };
+    var getAOA = function(vx, vy) {
+      var aoa = Math.atan(vy / vx);
+      if (vx < 0 && vy >= 0) {
+        aoa -= Math.PI;
+      } else if (vx < 0 && vy < 0) {
+        aoa += Math.PI;
+      }
+      return aoa;
+    };
+    var vx = randV(4);
+    var vy = randV(4);
+    this.length = length;
+    this.ar = ar;
+    this.x = randCoord(width);
+    this.y = randCoord(height);
+    this.vx = vx;
+    this.vy = vy;
+    this.aoa = getAOA(vx, vy);
+    this.color = 'pink';
+    this.draw = function() {
+      var x = this.x;
+      var y = this.y;
+      var aoa = this.aoa;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x - le * Math.cos(aoa - alpha), y - le * Math.sin(aoa - alpha));
+      ctx.lineTo(x - le * Math.cos(aoa + alpha), y - le * Math.sin(aoa + alpha));
+      ctx.closePath();
+      ctx.fillStyle = this.color;
+      ctx.fill();
+    };
+    this.update = function() {
+      var vx = this.vx;
+      var vy = this.vy;
+      this.x += vx;
+      this.y += vy;
+      var x = this.x;
+      var y = this.y;
+      if (x + vx > width - length || x + vx < length) {
+        vx *= -Math.random() * 2;
+        this.vx = vx;
+      }
+      if (y + vy > height - length || y + vy < length) {
+        vy *= -Math.random() * 2;
+        this.vy = vy;
+      }
+      this.aoa = getAOA(vx, vy);
+    };
+   },
+  setCar: function() {
+    this.setState({ car: new this.Car(this.state) }, this.setDots.bind(this, 10));
+  },
+  Dot: function(canvas) {
+    var ctx = canvas.ctx;
+    var width = canvas.width;
+    var height = canvas.height;
+    var pad = canvas.pad;
+    var car = canvas.car;
     var radius = pad * 3 / 20 + Math.random() * pad / 10;
     var thisPad = radius + pad;
     var x = thisPad + Math.random() * (width - 2 * thisPad);
@@ -99,9 +107,8 @@ var Index = React.createClass({
       ctx.fill();
     };
   },
-  setDots: function() {
+  setDots: function(numDots) {
     var Dot = this.Dot.bind(this, this.state);
-    var numDots = this.state.numDots;
     var dots = [];
     while (dots.length < numDots) {
       dots.push(new Dot());
