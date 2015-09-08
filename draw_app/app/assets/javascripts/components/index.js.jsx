@@ -4,26 +4,12 @@
 var Index = React.createClass({
   componentDidMount: function() {
     var canvas = document.getElementsByTagName('canvas')[0];
-    this.setState(
-      {
-        ctx: canvas.getContext('2d'),
-        width: canvas.width,
-        height: canvas.height,
-        pad: canvas.height / 10
-      },
-      this.setCar
-    );
-  },
-  Car: function(canvas) {
-    var ctx = canvas.ctx;
+    var ctx = canvas.getContext('2d');
     var width = canvas.width;
     var height = canvas.height;
-    var length = canvas.pad;
-    var ar = 1 / 3;
-    var span = length * ar;
-    var le = Math.sqrt(Math.pow(span / 2, 2) + Math.pow(length, 2));
-    var alpha = Math.atan((span / 2) / length);
-    var sRand = function(dim, pad) {
+    var pad = height / 10;
+    var sRand = function(dir, pad) {
+      var dim = dir === 'x' ? width : height;
       return pad + Math.random() * (dim - 2 * pad);
     };
     var vAbsRand = function(vAbsMax) {
@@ -35,136 +21,158 @@ var Index = React.createClass({
     var vNegRand = function(v, vAbsMax) {
       return (v < 0 ? 1 : -1) * vAbsRand(vAbsMax);
     };
-    var getAOA = function(v) {
-      var aoa = Math.atan(v.y / v.x);
-      if (v.x < 0 && v.y >= 0) {
-        aoa -= Math.PI;
-      } else if (v.x < 0 && v.y < 0) {
-        aoa += Math.PI;
-      }
-      return aoa;
+    var initializeVectors = function() {
+      var pad = this.pad;
+      var vAbsMax = this.vAbsMax;
+      this.s = {
+        x: sRand('x', pad),
+        y: sRand('y', pad)
+      };
+      this.v = {
+        x: vRand(vAbsMax),
+        y: vRand(vAbsMax)
+      };
     };
-    var v = {
-      x: vRand(4),
-      y: vRand(4)
-    };
-    this.length = length;
-    this.ar = ar;
-    this.s = {
-      x: sRand(width, length),
-      y: sRand(height, length)
-    };
-    this.v = v;
-    this.aoa = getAOA(v);
-    this.color = 'pink';
-    this.draw = function() {
+    var updateVectors = function() {
       var s = this.s;
-      var aoa = this.aoa;
-      ctx.beginPath();
-      ctx.moveTo(s.x, s.y);
-      ctx.lineTo(s.x - le * Math.cos(aoa - alpha), s.y - le * Math.sin(aoa - alpha));
-      ctx.lineTo(s.x - le * Math.cos(aoa + alpha), s.y - le * Math.sin(aoa + alpha));
-      ctx.closePath();
-      ctx.fillStyle = this.color;
-      ctx.fill();
-    };
-    this.update = function() {
       var v = this.v;
-      var s = this.s;
+      var vAbsMax = this.vAbsMax;
+      var pad = this.pad;
       s.x += v.x;
       s.y += v.y;
-      if (s.x + v.x > width - length || s.x + v.x < length) {
-        v.x = vNegRand(v.x, 4);
+      if (s.x + v.x > width - pad || s.x + v.x < pad) {
+        v.x = vNegRand(v.x, vAbsMax);
       }
-      if (s.y + v.y > height - length || s.y + v.y < length) {
-        v.y = vNegRand(v.y, 4);
+      if (s.y + v.y > height - pad || s.y + v.y < pad) {
+        v.y = vNegRand(v.y, vAbsMax);
       }
-      this.aoa = getAOA(v);
     };
-   },
-  setCar: function() {
-    this.setState({ car: new this.Car(this.state) }, this.setDots.bind(this, 30));
-  },
-  Dot: function(canvas) {
-    var ctx = canvas.ctx;
-    var width = canvas.width;
-    var height = canvas.height;
-    var pad = canvas.pad;
-    var sCar = canvas.car.s;
-    var radius = pad * 3 / 20 + Math.random() * pad / 10;
-    var thisPad = radius + pad;
-    var s = {
-      x: thisPad + Math.random() * (width - 2 * thisPad),
-      y: thisPad + Math.random() * (height - 2 * thisPad)
-    };
-    this.radius = radius;
-    this.s = s;
-    this.color = 'blue';
-    this.getDistance = function() {
-      return Math.sqrt(Math.pow(s.x - sCar.x, 2) + Math.pow(s.y - sCar.y, 2)) - radius;
-    };
-    this.draw = function() {
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, radius, 0, 2 * Math.PI, true);
-      ctx.closePath();
-      ctx.fillStyle = this.color;
-      ctx.fill();
-      this.jitter();
-    };
-    this.jitter = function() {
 
-    };
+    this.setState(
+      {
+        Plane: function() {
+          var c = pad;
+          var ar = 1 / 3;
+          var b = c * ar;
+          var le = Math.sqrt(Math.pow(b / 2, 2) + Math.pow(c, 2));
+          var alpha = Math.atan(b / 2 / c);
+          this.initializeVectors = initializeVectors;
+          this.updateVectors = updateVectors;
+          this.updateAOA = function() {
+            var v = this.v;
+            this.aoa = Math.atan(v.y / v.x);
+            if (v.x < 0 && v.y >= 0) {
+              this.aoa -= Math.PI;
+            } else if (v.x < 0 && v.y < 0) {
+              this.aoa += Math.PI;
+            }
+          };
+          this.draw = function() {
+            var s = this.s;
+            var aoa = this.aoa;
+            ctx.moveTo(s.x, s.y);
+            for(var i = -1; i <= 1; i+= 2) {
+              ctx.lineTo(s.x - le * Math.cos(aoa + i * alpha), s.y - le * Math.sin(aoa + i * alpha));
+            }
+            ctx.closePath();
+            ctx.fillStyle = this.color;
+            ctx.fill();
+          };
+          this.update = function() {
+            this.updateVectors();
+            this.updateAOA();
+          };
+
+          this.c = c;
+          this.ar = ar;
+          this.pad = c;
+          this.vAbsMax = 4;
+          this.color = 'pink';
+          this.initializeVectors();
+          this.updateAOA();
+        },
+        Dot: function(sPlane) {
+          var radius = pad * 3 / 20 + Math.random() * pad / 10;
+          this.initializeVectors = initializeVectors;
+          this.updateVectors = updateVectors;
+          this.updateDistance = function() {
+            var s = this.s;
+            this.distance = Math.sqrt(Math.pow(s.x - sPlane.x, 2) + Math.pow(s.y - sPlane.y, 2)) - radius;
+          };
+          this.draw = function() {
+            var s = this.s;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, radius, 0, 2 * Math.PI, true);
+            ctx.closePath();
+            ctx.fillStyle = this.color;
+            ctx.fill();
+          };
+          this.update = function() {
+            this.color = 'blue';
+            this.updateVectors();
+            this.updateDistance();
+          };
+
+          this.radius = radius;
+          this.pad = radius + pad;
+          this.vAbsMax = 0.1;
+          this.color = 'blue';
+          this.initializeVectors();
+          this.updateDistance();
+        },
+        drawBG: function() {
+          ctx.clearRect(0, 0, width, height);
+          ctx.strokeRect(pad, pad, width - 2 * pad, height - 2 * pad);
+        }
+      },
+      this.setPlane
+    );
+  },
+  setPlane: function() {
+    var Plane = this.state.Plane;
+    this.setState({ plane: new Plane() }, this.setDots.bind(this, 30));
   },
   setDots: function(numDots) {
-    var Dot = this.Dot.bind(this, this.state);
+    var Dot = this.state.Dot.bind(this, this.state.plane.s);
     var dots = [];
     while (dots.length < numDots) {
       dots.push(new Dot());
     }
-
     dots = {
       all: dots,
-      drawAll: function() {
+      drawAndUpdate: function() {
         this.all.forEach(function(dot) {
           dot.draw();
+          dot.update();
         });
       },
-      updateAll: function() {
-        var dots = this.all.sort(function(a, b) {
-          [a, b].forEach(function(dot) {
-            dot.color = 'blue';
-            dot.distance = dot.getDistance();
-          });
-
+      setTargets: function() {
+        var all = this.all.sort(function(a, b) {
           return b.distance - a.distance;
         });
 
-        var i = dots.length - 1;
-        while (dots[i].distance < 0) {
-          dots[i--] = new Dot();
+        var i = all.length - 1;
+        while (all[i].distance < 0) {
+          all[i--] = new Dot();
         }
-        dots[i].color = 'green';
+        all[i].color = 'green';
+        this.target = all[i];
       }
     };
-    dots.updateAll();
-    dots.closest = dots.all[0];
+    dots.drawAndUpdate();
+    dots.setTargets();
 
     this.setState({ dots: dots }, this.draw);
   },
   draw: function() {
-    var ctx = this.state.ctx;
-    var width = this.state.width;
-    var height = this.state.height;
-    var pad = this.state.pad;
-    var car = this.state.car;
+    var plane = this.state.plane;
     var dots = this.state.dots;
-
-    ctx.clearRect(0, 0, width, height);
-    ctx.strokeRect(pad, pad, width - 2 * pad, height - 2 * pad);
-    car.draw();
-    dots.drawAll();
-    car.update();
-    dots.updateAll();
+    console.log(dots.target);
+    this.state.drawBG();
+    plane.draw();
+    dots.drawAndUpdate();
+    plane.update();
+    dots.setTargets();
     window.requestAnimationFrame(this.draw);
   },
   render: function() {
