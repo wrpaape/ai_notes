@@ -70,10 +70,13 @@ var Index = React.createClass({
           this.draw = function() {
             var s = this.s;
             var aoa = this.aoa;
+            ctx.beginPath();
             ctx.moveTo(s.x, s.y);
             for(var i = -1; i <= 1; i+= 2) {
               ctx.lineTo(s.x - le * Math.cos(aoa + i * alpha), s.y - le * Math.sin(aoa + i * alpha));
             }
+            ctx.lineTo(s.x - le * Math.cos(aoa - alpha), s.y - le * Math.sin(aoa - alpha));
+            ctx.lineTo(s.x - le * Math.cos(aoa + alpha), s.y - le * Math.sin(aoa + alpha));
             ctx.closePath();
             ctx.fillStyle = this.color;
             ctx.fill();
@@ -87,92 +90,113 @@ var Index = React.createClass({
           this.ar = ar;
           this.pad = c;
           this.vAbsMax = 4;
-          this.color = 'pink';
+          this.color = '#' + Math.floor(Math.random() * 16777215).toString(16);
           this.initializeVectors();
           this.updateAOA();
         },
-        Dot: function(sPlane) {
+        Dot: function(allPlanes) {
           var radius = pad * 3 / 20 + Math.random() * pad / 10;
           this.initializeVectors = initializeVectors;
           this.updateVectors = updateVectors;
-          this.updateDistance = function() {
+          this.updateDistances = function() {
             var s = this.s;
-            this.distance = Math.sqrt(Math.pow(s.x - sPlane.x, 2) + Math.pow(s.y - sPlane.y, 2)) - radius;
+            this.distances = allPlanes.map(function(plane) {
+              return Math.sqrt(Math.pow(s.x - plane.s.x, 2) + Math.pow(s.y - plane.s.y, 2)) - radius;
+            });
           };
           this.draw = function() {
             var s = this.s;
-            ctx.beginPath();
-            ctx.arc(s.x, s.y, radius, 0, 2 * Math.PI, true);
-            ctx.closePath();
-            ctx.fillStyle = this.color;
-            ctx.fill();
+            var arcStart = 0;
+            var arcInc = 2 * Math.PI / this.colors.length;
+            this.colors.forEach(function(color) {
+              ctx.beginPath();
+              ctx.arc(s.x, s.y, radius, arcStart, arcStart + arcInc, false);
+              ctx.lineTo(s.x, s.y);
+              ctx.closePath();
+              ctx.fillStyle = color;
+              ctx.fill();
+              arcStart += arcInc;
+            });
           };
           this.update = function() {
-            this.color = 'blue';
+            this.colors = ['blue'];
             this.updateVectors();
-            this.updateDistance();
+            this.updateDistances();
           };
 
           this.radius = radius;
           this.pad = radius + pad;
           this.vAbsMax = 0.1;
-          this.color = 'blue';
+          this.colors = ['blue'];
           this.initializeVectors();
-          this.updateDistance();
+          this.updateDistances();
         },
         drawBG: function() {
           ctx.clearRect(0, 0, width, height);
           ctx.strokeRect(pad, pad, width - 2 * pad, height - 2 * pad);
         }
       },
-      this.setPlane
+      this.setPlanes.bind(this, 3)
     );
   },
-  setPlane: function() {
+  setPlanes: function(numPlanes) {
     var Plane = this.state.Plane;
-    this.setState({ plane: new Plane() }, this.setDots.bind(this, 30));
+    var allPlanes = [];
+    while (allPlanes.length < numPlanes) {
+      allPlanes.push(new Plane());
+    }
+    var planes = {
+      all: allPlanes,
+      DrawAndUpdate: function() {
+        this.all.forEach(function(plane) {
+          plane.draw();
+          plane.update();
+        });
+      }
+    };
+
+    this.setState({ planes: planes }, this.setDots.bind(this, 10));
   },
   setDots: function(numDots) {
-    var Dot = this.state.Dot.bind(this, this.state.plane.s);
-    var dots = [];
-    while (dots.length < numDots) {
-      dots.push(new Dot());
+    var allPlanes = this.state.planes.all;
+    var Dot = this.state.Dot.bind(this, allPlanes);
+    var allDots = [];
+    while (allDots.length < numDots) {
+      allDots.push(new Dot());
     }
-    dots = {
-      all: dots,
-      drawAndUpdate: function() {
-        this.all.forEach(function(dot) {
+    var dots = {
+      all: allDots,
+      DrawAndUpdate: function() {
+        var allDots = this.all;
+        allDots.forEach(function(dot) {
           dot.draw();
           dot.update();
         });
-      },
-      setTargets: function() {
-        var all = this.all.sort(function(a, b) {
-          return b.distance - a.distance;
+        allPlanes.forEach(function(plane, i) {
+          allDots.sort(function(a, b) {
+            return b.distances[i] - a.distances[i];
+          });
+          var j = allDots.length - 1;
+          while (allDots[j].distances[i] < 0) {
+            allDots[j--] = new Dot();
+          }
+          var target = allDots[j];
+          if (target.colors[0] === 'blue') {
+            target.colors[0] = plane.color;
+          } else {
+            target.colors.push(plane.color);
+          }
+          plane.target = target;
         });
-
-        var i = all.length - 1;
-        while (all[i].distance < 0) {
-          all[i--] = new Dot();
-        }
-        all[i].color = 'green';
-        this.target = all[i];
       }
     };
-    dots.drawAndUpdate();
-    dots.setTargets();
 
     this.setState({ dots: dots }, this.draw);
   },
   draw: function() {
-    var plane = this.state.plane;
-    var dots = this.state.dots;
-    console.log(dots.target);
     this.state.drawBG();
-    plane.draw();
-    dots.drawAndUpdate();
-    plane.update();
-    dots.setTargets();
+    this.state.planes.DrawAndUpdate();
+    this.state.dots.DrawAndUpdate();
     window.requestAnimationFrame(this.draw);
   },
   render: function() {
