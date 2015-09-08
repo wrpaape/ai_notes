@@ -15,86 +15,97 @@ var Index = React.createClass({
     var alpha = Math.atan((base / 2) / carHeight);
     var x0 = width / 2;
     var y0 = height / 2;
+    var vx0 = 3;
+    var vy0 = 3;
     var numDots = 10;
 
-    this.setState({
-      ctx: ctx,
-      width: width,
-      height: height,
-      pad: pad,
-      car : {
-        base: base,
-        height: carHeight,
-        le: le,
-        alpha: alpha,
-        x: x0,
-        y: y0,
-        vx: 3,
-        vy: 3,
-        color: 'pink',
-        draw: function() {
-          var x = this.x;
-          var y = this.y;
-          var vx = this.vx;
-          var vy = this.vy;
-          var le = this.le;
-          var alpha = this.alpha;
-          var aoa = Math.atan(vy / vx);
-          if (vx < 0 && vy >= 0) {
-            aoa -= Math.PI;
-          } else if (vx < 0 && vy < 0) {
-            aoa += Math.PI;
-          }
+    this.setState(
+      {
+        ctx: ctx,
+        width: width,
+        height: height,
+        pad: pad,
+        numDots: numDots,
+        car : {
+          base: base,
+          height: carHeight,
+          le: le,
+          alpha: alpha,
+          x: x0,
+          y: y0,
+          vx: vx0,
+          vy: vy0,
+          color: 'pink',
+          draw: function() {
+            var x = this.x;
+            var y = this.y;
+            var vx = this.vx;
+            var vy = this.vy;
+            var le = this.le;
+            var alpha = this.alpha;
+            var aoa = Math.atan(vy / vx);
+            if (vx < 0 && vy >= 0) {
+              aoa -= Math.PI;
+            } else if (vx < 0 && vy < 0) {
+              aoa += Math.PI;
+            }
 
-          ctx.beginPath();
-          ctx.moveTo(x, y);
-          ctx.lineTo(x - le * Math.cos(aoa - alpha), y - le * Math.sin(aoa - alpha));
-          ctx.lineTo(x - le * Math.cos(aoa + alpha), y - le * Math.sin(aoa + alpha));
-          ctx.closePath();
-          ctx.fillStyle = this.color;
-          ctx.fill();
-        },
-        update: function() {
-          this.x += this.vx;
-          this.y += this.vy;
-          if (this.y + this.vy > height - this.height || this.y + this.vy < this.height) {
-            this.vy = -Math.random() * 2 * this.vy;
-          }
-          if (this.x + this.vx > width - this.height || this.x + this.vx < this.height) {
-            this.vx = -Math.random() * 2 * this.vx;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x - le * Math.cos(aoa - alpha), y - le * Math.sin(aoa - alpha));
+            ctx.lineTo(x - le * Math.cos(aoa + alpha), y - le * Math.sin(aoa + alpha));
+            ctx.closePath();
+            ctx.fillStyle = this.color;
+            ctx.fill();
+          },
+          update: function() {
+            this.x += this.vx;
+            this.y += this.vy;
+            if (this.y + this.vy > height - this.height || this.y + this.vy < this.height) {
+              this.vy = -Math.random() * 2 * this.vy;
+            }
+            if (this.x + this.vx > width - this.height || this.x + this.vx < this.height) {
+              this.vx = -Math.random() * 2 * this.vx;
+            }
           }
         }
       },
-      dots: this.resetDots(ctx, width, height, pad, x0, y0, numDots)
-    }, this.draw);
+      this.setDots
+    );
   },
-  Dot: function() {
-    var ctx;
-    var width;
-    var height;
-    var pad;
-    var x0;
-    var y0;
-    this.radius = pad * 3 / 20 + Math.random() * pad / 10;
-    pad += this.radius;
-    this.x = pad + Math.random() * (width - 2 * pad);
-    this.y = pad + Math.random() * (height - 2 * pad);
-    this.color = 'blue';
-    this.getDistance = function(x, y) {
-      return Math.sqrt(Math.pow(this.x - x, 2) + Math.pow(this.y - y, 2)) - this.radius;
+  Dot: function(state) {
+    var ctx = state.ctx;
+    var width = state.width;
+    var height = state.height;
+    var pad = state.pad;
+    var xCar = state.car.x;
+    var yCar = state.car.y;
+    var radius = pad * 3 / 20 + Math.random() * pad / 10;
+    var thisPad = radius + pad;
+    var x = thisPad + Math.random() * (width - 2 * thisPad);
+    var y = thisPad + Math.random() * (height - 2 * thisPad);
+    var color = 'blue';
+    this.x = x;
+    this.y = y;
+    this.radius = radius;
+    this.color = color;
+    this.getDistance = function() {
+      return Math.sqrt(Math.pow(x - xCar, 2) + Math.pow(y - yCar, 2)) - radius;
     };
     this.draw = function() {
       ctx.beginPath();
-      ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, true);
+      ctx.arc(x, y, radius, 0, 2 * Math.PI, true);
       ctx.closePath();
-      ctx.fillStyle = this.color;
+      ctx.fillStyle = color;
       ctx.fill();
     };
   },
-  resetDots: function(numDots) {
+  setDots: function() {
+    var state  = this.state;
+    var numDots = state.numDots;
     var dots = [];
     while (dots.length < numDots) {
-      dots.push(new this.Dot());
+      dots.push(new this.Dot(state));
     }
 
     dots = {
@@ -104,29 +115,24 @@ var Index = React.createClass({
           dot.draw();
         });
       },
-      updateAll: function(x, y) {
+      updateAll: function() {
         var dots = this.dots.sort(function(a, b) {
-          [a, b].forEach(function(dot) {
-            dot.color = 'blue';
-            dot.distance = dot.getDistance(x, y);
-          });
+          a.color = 'blue';
+          b.color = 'blue';
 
-          return a.distance - b.distance;
+          return a.getDistance() - b.getDistance();
         });
 
         var i = 0;
         while (dots[i].distance < 0) {
-          dots[i++].reset();
+          dots[i++] = new this.Dot(this.state);
         }
         dots[i].color = 'green';
       }
     };
-    dots.updateAll(x0, y0);
+    dots.updateAll();
 
-    return dots;
-  },
-  render: function() {
-    return <canvas width='1000' height='500' />;
+    this.setState({ dots: dots }, this.draw);
   },
   draw: function() {
     var ctx = this.state.ctx;
@@ -143,5 +149,8 @@ var Index = React.createClass({
     car.update();
     dots.updateAll(car.x, car.y);
     window.requestAnimationFrame(this.draw);
+  },
+  render: function() {
+    return <canvas width='1000' height='500' />;
   }
 });
