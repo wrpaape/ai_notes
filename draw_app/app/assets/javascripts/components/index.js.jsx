@@ -89,22 +89,23 @@ var Index = React.createClass({
     var car = canvas.car;
     var radius = pad * 3 / 20 + Math.random() * pad / 10;
     var thisPad = radius + pad;
-    var x = thisPad + Math.random() * (width - 2 * thisPad);
-    var y = thisPad + Math.random() * (height - 2 * thisPad);
-    var color = 'blue';
-    this.x = x;
-    this.y = y;
+    this.x = thisPad + Math.random() * (width - 2 * thisPad);
+    this.y = thisPad + Math.random() * (height - 2 * thisPad);
     this.radius = radius;
-    this.color = color;
+    this.color = 'blue';
     this.getDistance = function() {
-      return Math.sqrt(Math.pow(x - car.x, 2) + Math.pow(y - car.y, 2)) - radius;
+      return Math.sqrt(Math.pow(this.x - car.x, 2) + Math.pow(this.y - car.y, 2)) - radius;
     };
     this.draw = function() {
       ctx.beginPath();
-      ctx.arc(x, y, radius, 0, 2 * Math.PI, true);
+      ctx.arc(this.x, this.y, radius, 0, 2 * Math.PI, true);
       ctx.closePath();
-      ctx.fillStyle = color;
+      ctx.fillStyle = this.color;
       ctx.fill();
+      this.jitter();
+    };
+    this.jitter = function() {
+
     };
   },
   setDots: function(numDots) {
