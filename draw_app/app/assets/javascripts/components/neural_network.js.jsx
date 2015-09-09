@@ -1,7 +1,7 @@
 /* globals React */
 'use strict';
 
-var Index = React.createClass({
+var NeuralNetwork = React.createClass({
   componentDidMount: function() {
     var canvas = document.getElementsByTagName('canvas')[0];
     var ctx = canvas.getContext('2d');
@@ -48,25 +48,26 @@ var Index = React.createClass({
       }
     };
 
+
     this.setState(
       {
         Plane: function() {
-          var c = pad;
           var ar = 1 / 3;
-          var b = c * ar;
+          var c = pad;
+          var b = ar * c;
           var le = Math.sqrt(Math.pow(b / 2, 2) + Math.pow(c, 2));
           var alpha = Math.atan(b / 2 / c);
-          this.initializeVectors = initializeVectors;
-          this.updateVectors = updateVectors;
-          this.updateAOA = function() {
-            var v = this.v;
-            this.aoa = Math.atan(v.y / v.x);
-            if (v.x < 0 && v.y >= 0) {
-              this.aoa -= Math.PI;
-            } else if (v.x < 0 && v.y < 0) {
-              this.aoa += Math.PI;
+          this.updateAngle = function(vec, theta) {
+            vec = this[vec];
+            this[theta] = Math.atan(vec.y / vec.x);
+            if (vec.x < 0 && vec.y >= 0) {
+              this[theta] -= Math.PI;
+            } else if (vec.x < 0 && vec.y < 0) {
+              this[theta] += Math.PI;
             }
           };
+          this.initializeVectors = initializeVectors;
+          this.updateVectors = updateVectors;
           this.draw = function() {
             var s = this.s;
             var aoa = this.aoa;
@@ -83,7 +84,19 @@ var Index = React.createClass({
           };
           this.update = function() {
             this.updateVectors();
-            this.updateAOA();
+            this.updateAngle('v', 'aoa');
+          };
+          this.updateDeltaS = function() {
+            var s = this.s;
+            var sTarget = this.target.s;
+            this.deltaS = {
+              x: sTarget.x - s.x,
+              y: sTarget.y - s.y
+            };
+          };
+          this.updateRho = function() {
+            var deltaS = this.deltaS;
+            this.rho = Math.sqrt(Math.pow(deltaS.x, 2) + Math.pow(deltaS.y, 2));
           };
 
           this.c = c;
@@ -92,15 +105,15 @@ var Index = React.createClass({
           this.vAbsMax = 4;
           this.color = '#' + Math.floor(Math.random() * 16777215).toString(16);
           this.initializeVectors();
-          this.updateAOA();
+          this.updateAngle('v', 'aoa');
         },
         Dot: function(allPlanes) {
           var radius = pad * 3 / 20 + Math.random() * pad / 10;
           this.initializeVectors = initializeVectors;
           this.updateVectors = updateVectors;
-          this.updateDistances = function() {
+          this.updateRhos = function() {
             var s = this.s;
-            this.distances = allPlanes.map(function(plane) {
+            this.rhos = allPlanes.map(function(plane) {
               return Math.sqrt(Math.pow(s.x - plane.s.x, 2) + Math.pow(s.y - plane.s.y, 2)) - radius;
             });
           };
@@ -108,9 +121,13 @@ var Index = React.createClass({
             var s = this.s;
             var arcStart = 0;
             var arcInc = 2 * Math.PI / this.colors.length;
+            // ctx.strokeStyle = 'yellow';
+            // ctx.lineWidth = 8;
+            // ctx.setLineDash([3]);
             this.colors.forEach(function(color) {
               ctx.beginPath();
               ctx.arc(s.x, s.y, radius, arcStart, arcStart + arcInc, false);
+              ctx.stroke();
               ctx.lineTo(s.x, s.y);
               ctx.closePath();
               ctx.fillStyle = color;
@@ -121,7 +138,7 @@ var Index = React.createClass({
           this.update = function() {
             this.colors = ['blue'];
             this.updateVectors();
-            this.updateDistances();
+            this.updateRhos();
           };
 
           this.radius = radius;
@@ -129,14 +146,13 @@ var Index = React.createClass({
           this.vAbsMax = 0.1;
           this.colors = ['blue'];
           this.initializeVectors();
-          this.updateDistances();
+          this.updateRhos();
         },
-        drawBG: function() {
+        clear: function() {
           ctx.clearRect(0, 0, width, height);
-          ctx.strokeRect(pad, pad, width - 2 * pad, height - 2 * pad);
         }
       },
-      this.setPlanes.bind(this, 3)
+      this.setPlanes.bind(this, 4)
     );
   },
   setPlanes: function(numPlanes) {
@@ -174,10 +190,10 @@ var Index = React.createClass({
         });
         allPlanes.forEach(function(plane, i) {
           allDots.sort(function(a, b) {
-            return b.distances[i] - a.distances[i];
+            return b.rhos[i] - a.rhos[i];
           });
           var j = allDots.length - 1;
-          while (allDots[j].distances[i] < 0) {
+          while (allDots[j].rhos[i] < 0) {
             allDots[j--] = new Dot();
           }
           var target = allDots[j];
@@ -187,6 +203,9 @@ var Index = React.createClass({
             target.colors.push(plane.color);
           }
           plane.target = target;
+          plane.updateDeltaS();
+          plane.updateRho();
+          plane.updateAngle('deltaS', 'theta');
         });
       }
     };
@@ -194,12 +213,20 @@ var Index = React.createClass({
     this.setState({ dots: dots }, this.draw);
   },
   draw: function() {
-    this.state.drawBG();
+    this.state.clear();
     this.state.planes.DrawAndUpdate();
     this.state.dots.DrawAndUpdate();
     window.requestAnimationFrame(this.draw);
   },
   render: function() {
-    return <canvas width='1000' height='500' />;
+    var ar = 2;
+    var height = 500;
+    var width = ar * height;
+// <Plane width={ width } height={ height } plane={ this.state.plane } />
+    return(
+      <div>
+        <canvas width={ width } height={ height } />
+      </div>
+    );
   }
 });

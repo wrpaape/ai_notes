@@ -5,6 +5,7 @@ html, body {
   height: 100%;
   text-align: center;
   overflow: hidden;
+  background-color: black;
   div {
     position: relative;
     top: 25%;
@@ -12,7 +13,7 @@ html, body {
     canvas {
       width: 50%;
       height: 25%;
-      border: 1px solid black;
+      border: 3px solid white;
     }
   }
 }
