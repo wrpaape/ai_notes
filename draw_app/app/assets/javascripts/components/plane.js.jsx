@@ -33,13 +33,13 @@ var Plane = React.createClass({
     ctx.stroke();
     ctx.restore();
   },
-  drawArrow: function(ctx, ox, oy, r, theta, color, rArc) {
+  drawArrow: function(ctx, ox, oy, r, phi, color, rArc) {
     var le = r / 10;
     var lambda = Math.PI / 8;
-    var rx = r * Math.cos(theta) + ox;
-    var ry = r * Math.sin(theta) + oy;
-    var delta1 = theta - lambda;
-    var delta2 = Math.PI / 2 - theta - lambda;
+    var rx = r * Math.cos(phi) + ox;
+    var ry = r * Math.sin(phi) + oy;
+    var delta1 = phi - lambda;
+    var delta2 = Math.PI / 2 - phi - lambda;
     var lex1 = rx - le * Math.cos(delta1);
     var ley1 = ry - le * Math.sin(delta1);
     var lex2 = rx - le * Math.sin(delta2);
@@ -56,18 +56,16 @@ var Plane = React.createClass({
     ctx.moveTo(rx, ry);
     ctx.lineTo(lex2, ley2);
     ctx.stroke();
-    if (rArc) {
-      ctx.moveTo(ox + rArc, oy);
-      ctx.arc(ox, oy, rArc, 0, theta, false);
-      ctx.stroke();
-    }
+    ctx.moveTo(ox + rArc, oy);
+    ctx.arc(ox, oy, rArc, 0, phi, false);
+    ctx.stroke();
     ctx.restore();
   },
   render: function() {
     return(
       <div>
         <canvas id='plane' width='200' height='200' />
-        <PlaneWindow planes={ this.props.planes } indexSelected={ this.props.indexSelected } updateIndex={ this.props.updateIndex } />
+        <PlaneWindow planes={ this.props.planes } indexSelected={ this.props.indexSelected } updateIndex={ this.props.updateIndex } drawArrow={ this.drawArrow } />
       </div>
     );
   }

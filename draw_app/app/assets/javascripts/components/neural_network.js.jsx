@@ -63,13 +63,13 @@ var NeuralNetwork = React.createClass({
           var b = ar * c;
           var le = getMagnitude(b / 2, c);
           var lambda = Math.atan(b / 2 / c);
-          this.updateAngle = function(vec, theta) {
+          this.updateAngle = function(vec, phi) {
             vec = this[vec];
-            this[theta] = Math.atan(vec.y / vec.x);
+            this[phi] = Math.atan(vec.y / vec.x);
             if (vec.x < 0 && vec.y >= 0) {
-              this[theta] -= Math.PI;
+              this[phi] -= Math.PI;
             } else if (vec.x < 0 && vec.y < 0) {
-              this[theta] += Math.PI;
+              this[phi] += Math.PI;
             }
           };
           this.initializeVectors = initializeVectors;
@@ -114,7 +114,7 @@ var NeuralNetwork = React.createClass({
           this.initializeVectors();
           this.updateAngle('v', 'alpha');
         },
-        Dot: function(allPlanes, colorSelected) {
+        Dot: function(allPlanes) {
           var radius = pad * 3 / 20 + Math.random() * pad / 10;
           this.initializeVectors = initializeVectors;
           this.updateVectors = updateVectors;
@@ -124,7 +124,7 @@ var NeuralNetwork = React.createClass({
               return getMagnitude(s.x - plane.s.x, s.y - plane.s.y) - radius;
             });
           };
-          this.draw = function() {
+          this.draw = function(colorSelected) {
             var s = this.s;
             var colors = this.colors;
             var arcStart = 0;
@@ -188,17 +188,17 @@ var NeuralNetwork = React.createClass({
   },
   setDots: function(numDots) {
     var allPlanes = this.state.planes.all;
-    var Dot = this.state.Dot.bind(this, allPlanes, allPlanes[this.state.indexSelected].color);
+    var Dot = this.state.Dot.bind(this, allPlanes);
     var allDots = [];
     while (allDots.length < numDots) {
       allDots.push(new Dot());
     }
     var dots = {
       all: allDots,
-      DrawAndUpdate: function() {
+      DrawAndUpdate: function(colorSelected) {
         var allDots = this.all;
         allDots.forEach(function(dot) {
-          dot.draw();
+          dot.draw(colorSelected);
           dot.update();
         });
         allPlanes.forEach(function(plane, i) {
@@ -226,24 +226,29 @@ var NeuralNetwork = React.createClass({
     this.setState({ dots: dots }, this.draw);
   },
   draw: function() {
+    var planes = this.state.planes;
+    var indexSelected = this.state.indexSelected;
     this.state.clear();
-    this.state.planes.DrawAndUpdate();
-    this.state.dots.DrawAndUpdate();
-    var planes = this.state.planes.all.map(this.extendPlane);
-    this.setState({ planeComp: <Plane planes={ planes } indexSelected={ this.state.indexSelected } updateIndex={ this.updateIndex } /> });
+    planes.DrawAndUpdate();
+    this.state.dots.DrawAndUpdate(planes.all[indexSelected].color);
+    this.setState({ planeComp: <Plane planes={ planes.all.map(this.extendPlane) } indexSelected={ indexSelected } updateIndex={ this.updateIndex } /> });
 
     window.requestAnimationFrame(this.draw);
   },
   extendPlane: function(plane) {
+    var phis = [plane.alpha, plane.theta].map(function(phi) {
+      return phi + (phi < 0 ? 2 * Math.PI : 0);
+    });
+
     return({
       s: {
         x: 100,
         y: 100
       },
       vMag: this.getMagnitude(plane.v.x, plane.v.y),
-      alpha: plane.alpha,
+      alpha: phis[0],
       rho: plane.rho,
-      theta: plane.theta,
+      theta: phis[1],
       color: plane.color,
       draw: plane.draw
     });
