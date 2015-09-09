@@ -14,6 +14,7 @@ var NeuralNetwork = React.createClass({
     var width = canvas.width;
     var height = canvas.height;
     var pad = height / 10;
+    var getMagnitude = this.getMagnitude;
     var sRand = function(dir, pad) {
       var dim = dir === 'x' ? width : height;
       return pad + Math.random() * (dim - 2 * pad);
@@ -54,15 +55,14 @@ var NeuralNetwork = React.createClass({
       }
     };
 
-
     this.setState(
       {
         Plane: function() {
           var ar = 1 / 3;
           var c = pad;
           var b = ar * c;
-          var le = Math.sqrt(Math.pow(b / 2, 2) + Math.pow(c, 2));
-          var alpha = Math.atan(b / 2 / c);
+          var le = getMagnitude(b / 2, c);
+          var lambda = Math.atan(b / 2 / c);
           this.updateAngle = function(vec, theta) {
             vec = this[vec];
             this[theta] = Math.atan(vec.y / vec.x);
@@ -77,21 +77,21 @@ var NeuralNetwork = React.createClass({
           this.draw = function(childCtx) {
             var context = childCtx || ctx;
             var s = this.s;
-            var aoa = this.aoa;
+            var alpha = this.alpha;
             context.beginPath();
             context.moveTo(s.x, s.y);
             for(var i = -1; i <= 1; i+= 2) {
-              context.lineTo(s.x - le * Math.cos(aoa + i * alpha), s.y - le * Math.sin(aoa + i * alpha));
+              context.lineTo(s.x - le * Math.cos(alpha + i * lambda), s.y - le * Math.sin(alpha + i * lambda));
             }
-            context.lineTo(s.x - le * Math.cos(aoa - alpha), s.y - le * Math.sin(aoa - alpha));
-            context.lineTo(s.x - le * Math.cos(aoa + alpha), s.y - le * Math.sin(aoa + alpha));
+            context.lineTo(s.x - le * Math.cos(alpha - lambda), s.y - le * Math.sin(alpha - lambda));
+            context.lineTo(s.x - le * Math.cos(alpha + lambda), s.y - le * Math.sin(alpha + lambda));
             context.closePath();
             context.fillStyle = this.color;
             context.fill();
           };
           this.update = function() {
             this.updateVectors();
-            this.updateAngle('v', 'aoa');
+            this.updateAngle('v', 'alpha');
           };
           this.updateDeltaS = function() {
             var s = this.s;
@@ -103,7 +103,7 @@ var NeuralNetwork = React.createClass({
           };
           this.updateRho = function() {
             var deltaS = this.deltaS;
-            this.rho = Math.sqrt(Math.pow(deltaS.x, 2) + Math.pow(deltaS.y, 2));
+            this.rho = getMagnitude(deltaS.x, deltaS.y);
           };
 
           this.c = c;
@@ -112,7 +112,7 @@ var NeuralNetwork = React.createClass({
           this.vAbsMax = 4;
           this.color = '#' + Math.floor(Math.random() * 16777215).toString(16);
           this.initializeVectors();
-          this.updateAngle('v', 'aoa');
+          this.updateAngle('v', 'alpha');
         },
         Dot: function(allPlanes, colorSelected) {
           var radius = pad * 3 / 20 + Math.random() * pad / 10;
@@ -121,7 +121,7 @@ var NeuralNetwork = React.createClass({
           this.updateRhos = function() {
             var s = this.s;
             this.rhos = allPlanes.map(function(plane) {
-              return Math.sqrt(Math.pow(s.x - plane.s.x, 2) + Math.pow(s.y - plane.s.y, 2)) - radius;
+              return getMagnitude(s.x - plane.s.x, s.y - plane.s.y) - radius;
             });
           };
           this.draw = function() {
@@ -229,22 +229,31 @@ var NeuralNetwork = React.createClass({
     this.state.clear();
     this.state.planes.DrawAndUpdate();
     this.state.dots.DrawAndUpdate();
-    var plane = this.extendPlane(this.state.planes.all[this.state.indexSelected]);
-    this.setState({ planeComp: <Plane plane={ plane } /> });
+    var planes = this.state.planes.all.map(this.extendPlane);
+    this.setState({ planeComp: <Plane planes={ planes } indexSelected={ this.state.indexSelected } updateIndex={ this.updateIndex } /> });
 
     window.requestAnimationFrame(this.draw);
   },
   extendPlane: function(plane) {
     return({
       s: {
-        x: 125,
-        y: 125
+        x: 100,
+        y: 100
       },
-      aoa: plane.aoa,
+      vMag: this.getMagnitude(plane.v.x, plane.v.y),
+      alpha: plane.alpha,
       rho: plane.rho,
       theta: plane.theta,
       color: plane.color,
       draw: plane.draw
+    });
+  },
+  getMagnitude: function(x, y) {
+    return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+  },
+  updateIndex: function(newIndex) {
+    this.setState({
+      indexSelected: newIndex
     });
   },
   render: function() {
