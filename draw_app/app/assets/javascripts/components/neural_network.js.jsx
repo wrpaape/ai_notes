@@ -2,8 +2,14 @@
 'use strict';
 
 var NeuralNetwork = React.createClass({
+  getInitialState: function() {
+    return({
+      indexSelected: 0,
+      planeComp: <div/>
+    });
+  },
   componentDidMount: function() {
-    var canvas = document.getElementsByTagName('canvas')[0];
+    var canvas = document.getElementById('neural-network');
     var ctx = canvas.getContext('2d');
     var width = canvas.width;
     var height = canvas.height;
@@ -68,19 +74,20 @@ var NeuralNetwork = React.createClass({
           };
           this.initializeVectors = initializeVectors;
           this.updateVectors = updateVectors;
-          this.draw = function() {
+          this.draw = function(childCtx) {
+            var context = childCtx || ctx;
             var s = this.s;
             var aoa = this.aoa;
-            ctx.beginPath();
-            ctx.moveTo(s.x, s.y);
+            context.beginPath();
+            context.moveTo(s.x, s.y);
             for(var i = -1; i <= 1; i+= 2) {
-              ctx.lineTo(s.x - le * Math.cos(aoa + i * alpha), s.y - le * Math.sin(aoa + i * alpha));
+              context.lineTo(s.x - le * Math.cos(aoa + i * alpha), s.y - le * Math.sin(aoa + i * alpha));
             }
-            ctx.lineTo(s.x - le * Math.cos(aoa - alpha), s.y - le * Math.sin(aoa - alpha));
-            ctx.lineTo(s.x - le * Math.cos(aoa + alpha), s.y - le * Math.sin(aoa + alpha));
-            ctx.closePath();
-            ctx.fillStyle = this.color;
-            ctx.fill();
+            context.lineTo(s.x - le * Math.cos(aoa - alpha), s.y - le * Math.sin(aoa - alpha));
+            context.lineTo(s.x - le * Math.cos(aoa + alpha), s.y - le * Math.sin(aoa + alpha));
+            context.closePath();
+            context.fillStyle = this.color;
+            context.fill();
           };
           this.update = function() {
             this.updateVectors();
@@ -107,7 +114,7 @@ var NeuralNetwork = React.createClass({
           this.initializeVectors();
           this.updateAngle('v', 'aoa');
         },
-        Dot: function(allPlanes) {
+        Dot: function(allPlanes, colorSelected) {
           var radius = pad * 3 / 20 + Math.random() * pad / 10;
           this.initializeVectors = initializeVectors;
           this.updateVectors = updateVectors;
@@ -119,12 +126,18 @@ var NeuralNetwork = React.createClass({
           };
           this.draw = function() {
             var s = this.s;
+            var colors = this.colors;
             var arcStart = 0;
-            var arcInc = 2 * Math.PI / this.colors.length;
-            // ctx.strokeStyle = 'yellow';
-            // ctx.lineWidth = 8;
-            // ctx.setLineDash([3]);
-            this.colors.forEach(function(color) {
+            var arcInc = 2 * Math.PI / colors.length;
+            if (~colors.indexOf(colorSelected)) {
+              ctx.strokeStyle = 'yellow';
+              ctx.lineWidth = 8;
+              ctx.setLineDash([5]);
+            } else {
+              ctx.strokeStyle = 'black';
+              ctx.lineWidth = 1;
+            }
+            colors.forEach(function(color) {
               ctx.beginPath();
               ctx.arc(s.x, s.y, radius, arcStart, arcStart + arcInc, false);
               ctx.stroke();
@@ -175,7 +188,7 @@ var NeuralNetwork = React.createClass({
   },
   setDots: function(numDots) {
     var allPlanes = this.state.planes.all;
-    var Dot = this.state.Dot.bind(this, allPlanes);
+    var Dot = this.state.Dot.bind(this, allPlanes, allPlanes[this.state.indexSelected].color);
     var allDots = [];
     while (allDots.length < numDots) {
       allDots.push(new Dot());
@@ -216,16 +229,31 @@ var NeuralNetwork = React.createClass({
     this.state.clear();
     this.state.planes.DrawAndUpdate();
     this.state.dots.DrawAndUpdate();
+    var plane = this.extendPlane(this.state.planes.all[this.state.indexSelected]);
+    this.setState({ planeComp: <Plane plane={ plane } /> });
+
     window.requestAnimationFrame(this.draw);
   },
+  extendPlane: function(plane) {
+    return({
+      s: {
+        x: 125,
+        y: 125
+      },
+      aoa: plane.aoa,
+      rho: plane.rho,
+      theta: plane.theta,
+      color: plane.color,
+      draw: plane.draw
+    });
+  },
   render: function() {
-    var ar = 2;
-    var height = 500;
-    var width = ar * height;
-// <Plane width={ width } height={ height } plane={ this.state.plane } />
     return(
       <div>
-        <canvas width={ width } height={ height } />
+        <canvas id='neural-network' width='1000' height='500' />
+        <div>
+          { this.state.planeComp }
+        </div>
       </div>
     );
   }
