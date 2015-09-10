@@ -1,7 +1,7 @@
 /* globals React */
 'use strict';
 
-var NeuralNetwork = React.createClass({
+var NeuralNetworkDemo = React.createClass({
   getInitialState: function() {
     return({
       indexSelected: 0,
