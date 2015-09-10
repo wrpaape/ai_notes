@@ -15,43 +15,56 @@ var NeuralNetwork = React.createClass({
     var height = canvas.height;
     var pad = height / 10;
     var getMagnitude = this.getMagnitude;
+    var randRange = function(min, max) {
+      return min + (max - min) * Math.random();
+    };
     var sRand = function(dir, pad) {
       var dim = dir === 'x' ? width : height;
-      return pad + Math.random() * (dim - 2 * pad);
+      return randRange(pad, dim - pad);
     };
-    var vAbsRand = function(vAbsMax) {
-      return Math.random() * vAbsMax;
-    };
-    var vRand = function(vAbsMax) {
-      return (Math.random() < 0.5 ? -1 : 1) * vAbsRand(vAbsMax);
-    };
-    var vNegRand = function(v, vAbsMax) {
-      return (v < 0 ? 1 : -1) * vAbsRand(vAbsMax);
+    var vNegRand = function(v, vMagMin, vMagMax) {
+      return (v < 0 ? 1 : -1) * randRange(vMagMin, vMagMax);
     };
     var initializeVectors = function() {
       var pad = this.pad;
-      var vAbsMax = this.vAbsMax;
+      var vMag = randRange(this.vMagMin, this.vMagMax);
+      var phi = randRange(0, 2 * Math.PI);
       this.s = {
         x: sRand('x', pad),
         y: sRand('y', pad)
       };
       this.v = {
-        x: vRand(vAbsMax),
-        y: vRand(vAbsMax)
+        x: vMag * Math.cos(phi),
+        y: vMag * Math.sin(phi)
       };
     };
-    var updateVectors = function() {
+    var updateDotVectors = function() {
       var s = this.s;
       var v = this.v;
-      var vAbsMax = this.vAbsMax;
+      var vMagMin = this.vMagMin;
+      var vMagMax = this.vMagMax;
       var pad = this.pad;
       s.x += v.x;
       s.y += v.y;
       if (s.x + v.x > width - pad || s.x + v.x < pad) {
-        v.x = vNegRand(v.x, vAbsMax);
+        v.x = vNegRand(v.x, vMagMin, vMagMax);
       }
       if (s.y + v.y > height - pad || s.y + v.y < pad) {
-        v.y = vNegRand(v.y, vAbsMax);
+        v.y = vNegRand(v.y, vMagMin, vMagMax);
+      }
+    };
+
+    var updatePlaneVectors = function() {
+      var s = this.s;
+      var v = this.v;
+      var pad = this.pad;
+      s.x += v.x;
+      s.y += v.y;
+      if (s.x + v.x > width - pad || s.x + v.x < pad) {
+        v.x = -v.x;
+      }
+      if (s.y + v.y > height - pad || s.y + v.y < pad) {
+        v.y = -v.y;
       }
     };
 
@@ -73,7 +86,7 @@ var NeuralNetwork = React.createClass({
             }
           };
           this.initializeVectors = initializeVectors;
-          this.updateVectors = updateVectors;
+          this.updateVectors = updatePlaneVectors;
           this.draw = function(childCtx) {
             var context = childCtx || ctx;
             var s = this.s;
@@ -109,7 +122,8 @@ var NeuralNetwork = React.createClass({
           this.c = c;
           this.ar = ar;
           this.pad = c;
-          this.vAbsMax = 4;
+          this.vMagMin = 3;
+          this.vMagMax = 6;
           this.color = '#' + Math.floor(Math.random() * 16777215).toString(16);
           this.initializeVectors();
           this.updateAngle('v', 'alpha');
@@ -117,7 +131,7 @@ var NeuralNetwork = React.createClass({
         Dot: function(allPlanes) {
           var radius = pad * 3 / 20 + Math.random() * pad / 10;
           this.initializeVectors = initializeVectors;
-          this.updateVectors = updateVectors;
+          this.updateVectors = updateDotVectors;
           this.updateRhos = function() {
             var s = this.s;
             this.rhos = allPlanes.map(function(plane) {
@@ -156,7 +170,8 @@ var NeuralNetwork = React.createClass({
 
           this.radius = radius;
           this.pad = radius + pad;
-          this.vAbsMax = 0.1;
+          this.vMagMin = 0.2;
+          this.vMagMax = 0.5;
           this.colors = ['blue'];
           this.initializeVectors();
           this.updateRhos();
@@ -245,7 +260,7 @@ var NeuralNetwork = React.createClass({
         x: 100,
         y: 100
       },
-      vMag: this.getMagnitude(plane.v.x, plane.v.y),
+      vMag: this.getMagnitude(plane.v.x, plane.v.y) * 60,
       alpha: phis[0],
       rho: plane.rho,
       theta: phis[1],
