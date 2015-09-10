@@ -41,7 +41,6 @@ var NeuralNetwork = React.createClass({
         x: 0,
         y: 0
       };
-      this.vMag = vMag;
     };
     var updateDotVectors = function() {
       var s = this.s;
@@ -73,6 +72,7 @@ var NeuralNetwork = React.createClass({
       if (s.x + v.x > width - pad || s.x + v.x < pad) {
         v.x = 0;
       }
+
       if (s.y + v.y > height - pad || s.y + v.y < pad) {
         v.y = 0;
       }
@@ -183,8 +183,8 @@ var NeuralNetwork = React.createClass({
 
           this.radius = radius;
           this.pad = radius + pad;
-          this.vMagMin = 0.2;
-          this.vMagMax = 0.5;
+          this.vMagMin = 0.1;
+          this.vMagMax = 1;
           this.colors = ['blue'];
           this.initializeVectors();
           this.updateRhos();
@@ -193,7 +193,7 @@ var NeuralNetwork = React.createClass({
           ctx.clearRect(0, 0, width, height);
         }
       },
-      this.setPlanes.bind(this, 1)
+      this.setPlanes.bind(this, 2)
     );
   },
   setPlanes: function(numPlanes) {
@@ -212,7 +212,7 @@ var NeuralNetwork = React.createClass({
       }
     };
 
-    this.setState({ planes: planes }, this.setDots.bind(this, 2));
+    this.setState({ planes: planes }, this.setDots.bind(this, 10));
   },
   setDots: function(numDots) {
     var allPlanes = this.state.planes.all;
