@@ -12,6 +12,49 @@ var PlaneWindow = React.createClass({
       indexSelected: nextProps.indexSelected
     });
   },
+  componentDidUpdate: function() {
+    var planes = this.props.planes;
+    var drawDottedLine = this.props.drawDottedLine;
+    var drawArrow = this.props.drawArrow;
+    var plane = planes[this.state.indexSelected];
+    var canvas = document.getElementById('plane-window');
+    var ctx = canvas.getContext('2d');
+    var width = canvas.width;
+    var height = canvas.height;
+    var ox1 = height / 10;
+    var oy = height / 4;
+    var deltaX = (width - 3 * ox1) / 2;
+    var phi = Math.PI / 12;
+    var r = deltaX / Math.cos(phi);
+    var ox2 = width - deltaX - ox1;
+    var heightText = 3 * ox1 / 2;
+    var formatScalar = function(scalar, v) {
+      return Math.round(scalar) + (v ? ' m/s' : ' m');
+    };
+    var formatPhi = function(phi) {
+      return Math.round(phi * 180 / Math.PI) + ' °';
+    };
+
+
+    var draw = function() {
+      ctx.clearRect(0, 0, width, height);
+      drawDottedLine(ctx, ox1, oy, ox1 + deltaX, oy);
+      drawArrow(ctx, ox1, oy, r, phi, plane.color, 2 * r / 5);
+      ctx.font = '25px serif';
+      ctx.fillStyle = plane.color;
+      ctx.fillText('plane', ox1, heightText);
+      ctx.fillText('v: ' + formatScalar(plane.vMag, true), ox1, height - 2 * heightText);
+      ctx.fillText('α: ' + formatPhi(plane.alpha), ox1, height - heightText);
+      drawDottedLine(ctx, ox2, oy, ox2 + deltaX, oy);
+      drawArrow(ctx, ox2, oy, r, phi, 'blue', 2 * r / 5);
+      ctx.fillStyle = 'blue';
+      ctx.fillText('target', ox2, heightText);
+      ctx.fillText('ρ: ' + formatScalar(plane.rho), ox2, height - 2 * heightText);
+      ctx.fillText('θ: ' + formatPhi(plane.theta), ox2, height - heightText);
+    }.bind(this);
+
+    window.requestAnimationFrame(draw);
+  },
   selectPlane: function(event) {
     this.props.updateIndex(event.target.value);
   },
@@ -30,6 +73,9 @@ var PlaneWindow = React.createClass({
         <select value={ this.state.indexSelected } onChange={ this.selectPlane }>
           { options }
         </select>
+        <div>
+          <canvas id='plane-window' width='300' height='150' />
+        </div>
       </div>
     );
   }

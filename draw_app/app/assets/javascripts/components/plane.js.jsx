@@ -3,6 +3,8 @@
 
 var Plane = React.createClass({
   componentDidUpdate: function() {
+    var planes = this.props.planes;
+    var plane = planes[this.props.indexSelected];
     var canvas = document.getElementById('plane');
     var ctx = canvas.getContext('2d');
     var width = canvas.width;
@@ -10,26 +12,26 @@ var Plane = React.createClass({
     var ox = width / 2;
     var oy = height / 2;
     var rMax = (ox > oy ? oy : ox) - 10;
-    var planes = this.props.planes;
-    var plane = planes[this.props.indexSelected];
+    var drawDottedLine = this.drawDottedLine;
+    var drawArrow = this.drawArrow;
     var draw = function() {
       ctx.clearRect(0, 0, width, height);
       plane.draw(ctx);
-      this.drawAxis(ctx, ox, oy);
-      this.drawArrow(ctx, ox, oy, rMax, plane.alpha, plane.color, rMax / 6);
-      this.drawArrow(ctx, ox, oy, rMax, plane.theta, 'blue', rMax / 3);
-    }.bind(this);
+      drawDottedLine(ctx, ox, oy, 2 * ox, oy);
+      drawArrow(ctx, ox, oy, rMax, plane.alpha, plane.color, rMax / 6);
+      drawArrow(ctx, ox, oy, rMax, plane.theta, 'blue', rMax / 3);
+    };
 
     window.requestAnimationFrame(draw);
   },
-  drawAxis: function(ctx, ox, oy) {
+  drawDottedLine: function(ctx, x1, y1, x2, y2) {
     ctx.save();
     ctx.strokeStyle = 'white';
     ctx.lineWidth = 2;
     ctx.setLineDash([10]);
     ctx.beginPath();
-    ctx.moveTo(ox, oy);
-    ctx.lineTo(2 * ox, oy);
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
     ctx.stroke();
     ctx.restore();
   },
@@ -65,7 +67,7 @@ var Plane = React.createClass({
     return(
       <div>
         <canvas id='plane' width='200' height='200' />
-        <PlaneWindow planes={ this.props.planes } indexSelected={ this.props.indexSelected } updateIndex={ this.props.updateIndex } drawArrow={ this.drawArrow } />
+        <PlaneWindow planes={ this.props.planes } indexSelected={ this.props.indexSelected } updateIndex={ this.props.updateIndex } drawDottedLine={ this.drawDottedLine } drawArrow={ this.drawArrow } />
       </div>
     );
   }
