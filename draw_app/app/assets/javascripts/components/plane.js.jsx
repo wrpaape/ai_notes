@@ -5,21 +5,29 @@ var Plane = React.createClass({
   componentDidUpdate: function() {
     var planes = this.props.planes;
     var plane = planes[this.props.indexSelected];
+    var alpha = plane.alpha;
+    var theta = plane.theta;
+    var color = plane.color;
     var canvas = document.getElementById('plane');
     var ctx = canvas.getContext('2d');
     var width = canvas.width;
     var height = canvas.height;
-    var ox = width / 2;
-    var oy = height / 2;
-    var rMax = (ox > oy ? oy : ox) - 10;
+    var xo = width / 2;
+    var yo = height / 2;
+    var rBall = width / 25;
+    var rArrow = xo - 4 * rBall;
+    var xBall = xo + (rArrow + 2 * rBall) * Math.cos(theta);
+    var yBall = yo + (rArrow + 2 * rBall) * Math.sin(theta);
     var drawDottedLine = this.drawDottedLine;
     var drawArrow = this.drawArrow;
+    var drawBall = this.drawBall;
     var draw = function() {
       ctx.clearRect(0, 0, width, height);
       plane.draw(ctx);
-      drawDottedLine(ctx, ox, oy, 2 * ox, oy);
-      drawArrow(ctx, ox, oy, rMax, plane.alpha, plane.color, rMax / 6);
-      drawArrow(ctx, ox, oy, rMax, plane.theta, 'blue', rMax / 3);
+      drawDottedLine(ctx, xo, yo, 2 * xo, yo);
+      drawArrow(ctx, xo, yo, rArrow, alpha, color, rArrow / 6);
+      drawArrow(ctx, xo, yo, rArrow, theta, 'blue', rArrow / 3);
+      drawBall(ctx, xBall, yBall, rBall);
     };
 
     window.requestAnimationFrame(draw);
@@ -35,11 +43,11 @@ var Plane = React.createClass({
     ctx.stroke();
     ctx.restore();
   },
-  drawArrow: function(ctx, ox, oy, r, phi, color, rArc) {
+  drawArrow: function(ctx, xo, yo, r, phi, color, rArc) {
     var le = r / 10;
-    var lambda = Math.PI / 8;
-    var rx = r * Math.cos(phi) + ox;
-    var ry = r * Math.sin(phi) + oy;
+    var lambda = Math.PI / 6;
+    var rx = r * Math.cos(phi) + xo;
+    var ry = r * Math.sin(phi) + yo;
     var delta1 = phi - lambda;
     var delta2 = Math.PI / 2 - phi - lambda;
     var lex1 = rx - le * Math.cos(delta1);
@@ -50,7 +58,7 @@ var Plane = React.createClass({
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(ox, oy);
+    ctx.moveTo(xo, yo);
     ctx.lineTo(rx, ry);
     ctx.stroke();
     ctx.lineTo(lex1, ley1);
@@ -58,9 +66,18 @@ var Plane = React.createClass({
     ctx.moveTo(rx, ry);
     ctx.lineTo(lex2, ley2);
     ctx.stroke();
-    ctx.moveTo(ox + rArc, oy);
-    ctx.arc(ox, oy, rArc, 0, phi, false);
+    ctx.moveTo(xo + rArc, yo);
+    ctx.arc(xo, yo, rArc, 0, phi, false);
     ctx.stroke();
+    ctx.restore();
+  },
+  drawBall: function(ctx, x, y, r) {
+    ctx.save();
+    ctx.fillStyle = 'blue';
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, 2 * Math.PI);
+    ctx.closePath();
+    ctx.fill();
     ctx.restore();
   },
   render: function() {

@@ -28,15 +28,20 @@ var NeuralNetwork = React.createClass({
     var initializeVectors = function() {
       var pad = this.pad;
       var vMag = randRange(this.vMagMin, this.vMagMax);
-      var phi = randRange(0, 2 * Math.PI);
+      var alpha = randRange(0, 2 * Math.PI);
       this.s = {
         x: sRand('x', pad),
         y: sRand('y', pad)
       };
       this.v = {
-        x: vMag * Math.cos(phi),
-        y: vMag * Math.sin(phi)
+        x: vMag * Math.cos(alpha),
+        y: vMag * Math.sin(alpha)
       };
+      this.a = {
+        x: 0,
+        y: 0
+      };
+      this.vMag = vMag;
     };
     var updateDotVectors = function() {
       var s = this.s;
@@ -57,14 +62,19 @@ var NeuralNetwork = React.createClass({
     var updatePlaneVectors = function() {
       var s = this.s;
       var v = this.v;
+      var a = this.a;
+      var alpha = this.alpha;
       var pad = this.pad;
       s.x += v.x;
       s.y += v.y;
+      v.x += a.x;
+      v.y += a.y;
+
       if (s.x + v.x > width - pad || s.x + v.x < pad) {
-        v.x = -v.x;
+        v.x = 0;
       }
       if (s.y + v.y > height - pad || s.y + v.y < pad) {
-        v.y = -v.y;
+        v.y = 0;
       }
     };
 
@@ -83,6 +93,9 @@ var NeuralNetwork = React.createClass({
               this[phi] -= Math.PI;
             } else if (vec.x < 0 && vec.y < 0) {
               this[phi] += Math.PI;
+            }
+            if (this[phi] < 0) {
+              this[phi] += 2 * Math.PI;
             }
           };
           this.initializeVectors = initializeVectors;
@@ -122,8 +135,8 @@ var NeuralNetwork = React.createClass({
           this.c = c;
           this.ar = ar;
           this.pad = c;
-          this.vMagMin = 3;
-          this.vMagMax = 6;
+          this.vMagMin = 0;
+          this.vMagMax = 20;
           this.color = '#' + Math.floor(Math.random() * 16777215).toString(16);
           this.initializeVectors();
           this.updateAngle('v', 'alpha');
@@ -180,7 +193,7 @@ var NeuralNetwork = React.createClass({
           ctx.clearRect(0, 0, width, height);
         }
       },
-      this.setPlanes.bind(this, 4)
+      this.setPlanes.bind(this, 1)
     );
   },
   setPlanes: function(numPlanes) {
@@ -199,7 +212,7 @@ var NeuralNetwork = React.createClass({
       }
     };
 
-    this.setState({ planes: planes }, this.setDots.bind(this, 10));
+    this.setState({ planes: planes }, this.setDots.bind(this, 2));
   },
   setDots: function(numDots) {
     var allPlanes = this.state.planes.all;
@@ -234,6 +247,8 @@ var NeuralNetwork = React.createClass({
           plane.updateDeltaS();
           plane.updateRho();
           plane.updateAngle('deltaS', 'theta');
+          plane.a.x = Math.cos(plane.theta) / 5;
+          plane.a.y = Math.sin(plane.theta) / 5;
         });
       }
     };
@@ -251,19 +266,15 @@ var NeuralNetwork = React.createClass({
     window.requestAnimationFrame(this.draw);
   },
   extendPlane: function(plane) {
-    var phis = [plane.alpha, plane.theta].map(function(phi) {
-      return phi + (phi < 0 ? 2 * Math.PI : 0);
-    });
-
     return({
       s: {
         x: 100,
         y: 100
       },
       vMag: this.getMagnitude(plane.v.x, plane.v.y) * 60,
-      alpha: phis[0],
+      alpha: plane.alpha,
       rho: plane.rho,
-      theta: phis[1],
+      theta: plane.theta,
       color: plane.color,
       draw: plane.draw
     });
